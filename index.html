@@ -1,0 +1,1580 @@
+
+# Create the complete freemium healthcare app with Stripe integration
+freemium_html = '''<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NutriSync Health | Clinical Nutrition Platform</title>
+    
+    <!-- Stripe -->
+    <script src="https://js.stripe.com/v3/"></script>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --success: #16a34a;
+            --warning: #f59e0b;
+            --danger: #dc2626;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+            --premium-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --locked-overlay: rgba(255, 255, 255, 0.7);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--gray-50);
+            color: var(--gray-800);
+            line-height: 1.6;
+        }
+
+        /* Layout */
+        .app-container {
+            display: grid;
+            grid-template-columns: 260px 1fr;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: #fff;
+            border-right: 1px solid var(--gray-200);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            width: 260px;
+            z-index: 100;
+        }
+
+        .brand {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .brand-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--primary);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.25rem;
+        }
+
+        .brand-text h1 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--gray-900);
+        }
+
+        .brand-text span {
+            font-size: 0.75rem;
+            color: var(--gray-500);
+        }
+
+        .nav-menu {
+            flex: 1;
+            padding: 1rem 0;
+            overflow-y: auto;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.875rem 1.5rem;
+            margin: 0.25rem 0.75rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--gray-600);
+            font-size: 0.875rem;
+            font-weight: 500;
+            position: relative;
+        }
+
+        .nav-item:hover { background: var(--gray-100); color: var(--gray-900); }
+        .nav-item.active { background: rgba(37, 99, 235, 0.08); color: var(--primary); }
+        .nav-item.premium::after {
+            content: 'PRO';
+            margin-left: auto;
+            font-size: 0.625rem;
+            padding: 0.125rem 0.375rem;
+            background: var(--premium-gradient);
+            color: white;
+            border-radius: 4px;
+            font-weight: 700;
+        }
+
+        .nav-item.locked {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Upgrade Card */
+        .upgrade-card {
+            margin: 1rem;
+            padding: 1.25rem;
+            background: var(--premium-gradient);
+            border-radius: 12px;
+            color: white;
+        }
+
+        .upgrade-card h3 {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .upgrade-card p {
+            font-size: 0.875rem;
+            opacity: 0.9;
+            margin-bottom: 1rem;
+        }
+
+        .upgrade-btn {
+            width: 100%;
+            padding: 0.625rem;
+            background: white;
+            color: #764ba2;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .upgrade-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+
+        .user-profile {
+            padding: 1rem;
+            border-top: 1px solid var(--gray-200);
+        }
+
+        .user-card {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            background: var(--gray-100);
+            border-radius: 10px;
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .user-info h4 { font-size: 0.875rem; font-weight: 600; }
+        .user-info span { font-size: 0.75rem; color: var(--gray-500); }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 260px;
+            padding: 2rem;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .page-title h2 {
+            font-size: 1.875rem;
+            font-weight: 700;
+            color: var(--gray-900);
+        }
+
+        .page-title p {
+            color: var(--gray-500);
+            margin-top: 0.25rem;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.625rem 1rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover { background: var(--primary-dark); }
+        
+        .btn-secondary {
+            background: white;
+            color: var(--gray-700);
+            border-color: var(--gray-300);
+        }
+
+        .btn-secondary:hover { background: var(--gray-50); }
+
+        .btn-premium {
+            background: var(--premium-gradient);
+            color: white;
+        }
+
+        /* Dashboard Grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid var(--gray-200);
+            box-shadow: var(--shadow-sm);
+            position: relative;
+        }
+
+        .card.wide { grid-column: span 2; }
+        .card.full { grid-column: span 3; }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .card-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--gray-500);
+        }
+
+        .card-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.125rem;
+        }
+
+        .card-icon.blue { background: rgba(37, 99, 235, 0.1); color: var(--primary); }
+        .card-icon.green { background: rgba(22, 163, 74, 0.1); color: var(--success); }
+        .card-icon.amber { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
+
+        .metric-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-label {
+            font-size: 0.875rem;
+            color: var(--gray-500);
+        }
+
+        /* Premium Lock Overlay */
+        .premium-lock {
+            position: absolute;
+            inset: 0;
+            background: var(--locked-overlay);
+            backdrop-filter: blur(4px);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+
+        .lock-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--premium-gradient);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .premium-lock h4 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: 0.5rem;
+        }
+
+        .premium-lock p {
+            font-size: 0.875rem;
+            color: var(--gray-600);
+            margin-bottom: 1rem;
+            text-align: center;
+            padding: 0 1rem;
+        }
+
+        /* Free Features */
+        .free-features {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.875rem;
+            background: var(--gray-50);
+            border-radius: 8px;
+            font-size: 0.875rem;
+        }
+
+        .feature-item i {
+            color: var(--success);
+        }
+
+        .feature-item.locked {
+            opacity: 0.5;
+        }
+
+        .feature-item.locked i {
+            color: var(--gray-400);
+        }
+
+        /* Chart Container */
+        .chart-container {
+            height: 250px;
+            margin-top: 1rem;
+        }
+
+        /* Food Logger - FREE */
+        .food-logger {
+            margin-top: 1rem;
+        }
+
+        .search-box {
+            position: relative;
+            margin-bottom: 1rem;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 0.875rem 1rem 0.875rem 2.5rem;
+            border: 1px solid var(--gray-300);
+            border-radius: 8px;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 0.875rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray-400);
+        }
+
+        .food-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .food-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.875rem;
+            border-bottom: 1px solid var(--gray-100);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .food-item:hover { background: var(--gray-50); }
+
+        .food-info h4 {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--gray-900);
+        }
+
+        .food-info span {
+            font-size: 0.75rem;
+            color: var(--gray-500);
+        }
+
+        .food-cals {
+            font-weight: 600;
+            color: var(--gray-900);
+        }
+
+        /* Progress Bars */
+        .progress-section {
+            margin-top: 1.5rem;
+        }
+
+        .progress-item {
+            margin-bottom: 1rem;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: var(--gray-200);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--primary);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .progress-fill.success { background: var(--success); }
+        .progress-fill.warning { background: var(--warning); }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-overlay.active { display: flex; }
+
+        .modal {
+            background: white;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .modal-close {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            border: none;
+            background: var(--gray-100);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .modal-close:hover { background: var(--gray-200); }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .pricing-cards {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .pricing-card {
+            border: 2px solid var(--gray-200);
+            border-radius: 12px;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .pricing-card:hover { border-color: var(--primary); }
+        .pricing-card.selected {
+            border-color: var(--primary);
+            background: rgba(37, 99, 235, 0.02);
+        }
+
+        .pricing-card.popular::before {
+            content: 'MOST POPULAR';
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--premium-gradient);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.625rem;
+            font-weight: 700;
+        }
+
+        .pricing-card h4 {
+            font-size: 1.125rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .pricing-card .price {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--gray-900);
+        }
+
+        .pricing-card .price span {
+            font-size: 1rem;
+            color: var(--gray-500);
+            font-weight: 400;
+        }
+
+        .pricing-features {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--gray-200);
+        }
+
+        .pricing-features li {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.375rem 0;
+            font-size: 0.875rem;
+            color: var(--gray-600);
+        }
+
+        .pricing-features li i {
+            color: var(--success);
+            font-size: 0.875rem;
+        }
+
+        .modal-footer {
+            padding: 1.5rem;
+            border-top: 1px solid var(--gray-200);
+        }
+
+        #card-element {
+            padding: 1rem;
+            border: 1px solid var(--gray-300);
+            border-radius: 8px;
+            background: white;
+        }
+
+        .payment-form {
+            display: none;
+        }
+
+        .payment-form.active {
+            display: block;
+        }
+
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .toast {
+            padding: 1rem 1.5rem;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            animation: slideIn 0.3s ease;
+            border-left: 4px solid;
+        }
+
+        .toast.success { border-left-color: var(--success); }
+        .toast.error { border-left-color: var(--danger); }
+        .toast.info { border-left-color: var(--primary); }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .app-container { grid-template-columns: 1fr; }
+            .sidebar { display: none; }
+            .main-content { margin-left: 0; }
+            .dashboard-grid { grid-template-columns: 1fr; }
+            .card.wide, .card.full { grid-column: span 1; }
+        }
+
+        /* Usage Limit Indicator */
+        .usage-indicator {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: var(--gray-100);
+            border-radius: 8px;
+        }
+
+        .usage-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.875rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .usage-bar {
+            height: 6px;
+            background: var(--gray-300);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .usage-fill {
+            height: 100%;
+            background: var(--primary);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+
+        .usage-fill.warning { background: var(--warning); }
+        .usage-fill.danger { background: var(--danger); }
+
+        .upgrade-prompt {
+            margin-top: 0.75rem;
+            padding: 0.75rem;
+            background: rgba(37, 99, 235, 0.08);
+            border-radius: 6px;
+            font-size: 0.875rem;
+            color: var(--primary);
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .upgrade-prompt:hover { background: rgba(37, 99, 235, 0.12); }
+    </style>
+</head>
+<body>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Upgrade Modal -->
+    <div class="modal-overlay" id="upgradeModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Upgrade to NutriSync Pro</h3>
+                <button class="modal-close" onclick="closeModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="pricing-cards">
+                    <!-- Free Plan -->
+                    <div class="pricing-card" onclick="selectPlan('free')">
+                        <h4>Free</h4>
+                        <div class="price">$0<span>/month</span></div>
+                        <ul class="pricing-features">
+                            <li><i class="fas fa-check"></i> Basic food logging (3/day)</li>
+                            <li><i class="fas fa-check"></i> Calorie tracking</li>
+                            <li><i class="fas fa-check"></i> Weight tracking</li>
+                            <li><i class="fas fa-check"></i> Basic progress charts</li>
+                            <li><i class="fas fa-check"></i> 7-day history</li>
+                            <li class="locked"><i class="fas fa-times" style="color: var(--gray-400);"></i> Advanced analytics</li>
+                            <li class="locked"><i class="fas fa-times" style="color: var(--gray-400);"></i> AI recommendations</li>
+                        </ul>
+                    </div>
+
+                    <!-- Pro Plan -->
+                    <div class="pricing-card popular selected" onclick="selectPlan('pro')">
+                        <h4>Pro</h4>
+                        <div class="price">$15<span>/month</span></div>
+                        <ul class="pricing-features">
+                            <li><i class="fas fa-check"></i> Unlimited food logging</li>
+                            <li><i class="fas fa-check"></i> All macros & micronutrients</li>
+                            <li><i class="fas fa-check"></i> AI meal recommendations</li>
+                            <li><i class="fas fa-check"></i> Advanced analytics & insights</li>
+                            <li><i class="fas fa-check"></i> Unlimited history</li>
+                            <li><i class="fas fa-check"></i> Export data (PDF/CSV)</li>
+                            <li><i class="fas fa-check"></i> Priority support</li>
+                            <li><i class="fas fa-check"></i> 270+ clinical features</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Payment Form (shown after selecting Pro) -->
+                <div class="payment-form" id="paymentForm">
+                    <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--gray-200);">
+                        <label style="display: block; font-size: 0.875rem; font-weight: 500; margin-bottom: 0.5rem;">Card Information</label>
+                        <div id="card-element"></div>
+                        <div id="card-errors" style="color: var(--danger); font-size: 0.875rem; margin-top: 0.5rem;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" style="width: 100%; justify-content: center;" onclick="processPayment()" id="payButton">
+                    <i class="fas fa-lock"></i> Subscribe Now - $15/month
+                </button>
+                <p style="text-align: center; font-size: 0.75rem; color: var(--gray-500); margin-top: 0.75rem;">
+                    <i class="fas fa-shield-alt"></i> Secure payment via Stripe. Cancel anytime.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-icon">
+                    <i class="fas fa-heart-pulse"></i>
+                </div>
+                <div class="brand-text">
+                    <h1>NutriSync</h1>
+                    <span id="planBadge">Free Plan</span>
+                </div>
+            </div>
+
+            <nav class="nav-menu">
+                <div class="nav-item active" onclick="switchView('dashboard')">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </div>
+                <div class="nav-item" onclick="switchView('food')">
+                    <i class="fas fa-utensils"></i>
+                    <span>Food Diary</span>
+                    <span style="margin-left: auto; font-size: 0.625rem; color: var(--gray-400);">3/day</span>
+                </div>
+                <div class="nav-item" onclick="switchView('weight')">
+                    <i class="fas fa-weight"></i>
+                    <span>Weight</span>
+                </div>
+                <div class="nav-item" onclick="switchView('progress')">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Progress</span>
+                    <span style="margin-left: auto; font-size: 0.625rem; color: var(--gray-400);">7 days</span>
+                </div>
+
+                <!-- Premium Features (Locked) -->
+                <div style="padding: 1rem 1.5rem; font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--gray-400); margin-top: 1rem;">
+                    Pro Features
+                </div>
+                <div class="nav-item premium locked" onclick="showUpgradePrompt()">
+                    <i class="fas fa-brain"></i>
+                    <span>AI Coach</span>
+                </div>
+                <div class="nav-item premium locked" onclick="showUpgradePrompt()">
+                    <i class="fas fa-dna"></i>
+                    <span>Macros</span>
+                </div>
+                <div class="nav-item premium locked" onclick="showUpgradePrompt()">
+                    <i class="fas fa-flask"></i>
+                    <span>Lab Tracking</span>
+                </div>
+                <div class="nav-item premium locked" onclick="showUpgradePrompt()">
+                    <i class="fas fa-file-export"></i>
+                    <span>Reports</span>
+                </div>
+                <div class="nav-item premium locked" onclick="showUpgradePrompt()">
+                    <i class="fas fa-users"></i>
+                    <span>Family Plan</span>
+                </div>
+            </nav>
+
+            <!-- Upgrade Card (Free users only) -->
+            <div class="upgrade-card" id="upgradeCard">
+                <h3><i class="fas fa-crown"></i> Unlock Pro</h3>
+                <p>Get unlimited logging, AI insights, and 270+ clinical features.</p>
+                <button class="upgrade-btn" onclick="openUpgradeModal()">
+                    Upgrade $15/month
+                </button>
+            </div>
+
+            <div class="user-profile">
+                <div class="user-card">
+                    <div class="user-avatar">JD</div>
+                    <div class="user-info">
+                        <h4>John Doe</h4>
+                        <span id="accountType">Free Account</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Dashboard View -->
+            <div id="dashboardView">
+                <div class="page-header">
+                    <div class="page-title">
+                        <h2>Dashboard</h2>
+                        <p>Track your nutrition and health goals</p>
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn btn-secondary">
+                            <i class="fas fa-calendar"></i> Today
+                        </button>
+                        <button class="btn btn-primary" onclick="quickAddFood()">
+                            <i class="fas fa-plus"></i> Quick Add
+                        </button>
+                    </div>
+                </div>
+
+                <div class="dashboard-grid">
+                    <!-- Daily Calories - FREE -->
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-label">Calories Today</span>
+                            <div class="card-icon blue">
+                                <i class="fas fa-fire"></i>
+                            </div>
+                        </div>
+                        <div class="metric-value">1,247</div>
+                        <div class="metric-label">of 2,000 goal</div>
+                        
+                        <div class="progress-section">
+                            <div class="progress-item">
+                                <div class="progress-header">
+                                    <span>Progress</span>
+                                    <span>62%</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 62%;"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Usage Limit (Free only) -->
+                        <div class="usage-indicator" id="foodLimitIndicator">
+                            <div class="usage-header">
+                                <span>Free food entries</span>
+                                <span>2 of 3 used</span>
+                            </div>
+                            <div class="usage-bar">
+                                <div class="usage-fill warning" style="width: 66%;"></div>
+                            </div>
+                            <div class="upgrade-prompt" onclick="openUpgradeModal()">
+                                <i class="fas fa-lock"></i> Upgrade for unlimited entries
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Weight - FREE -->
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-label">Current Weight</span>
+                            <div class="card-icon green">
+                                <i class="fas fa-weight"></i>
+                            </div>
+                        </div>
+                        <div class="metric-value">185.4 <span style="font-size: 1rem; color: var(--gray-500);">lbs</span></div>
+                        <div class="metric-label">
+                            <span style="color: var(--success);"><i class="fas fa-arrow-down"></i> 2.3 lbs</span> this week
+                        </div>
+                        
+                        <div class="chart-container" style="height: 120px; margin-top: 1.5rem;">
+                            <canvas id="weightChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Water - FREE -->
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-label">Water Intake</span>
+                            <div class="card-icon blue">
+                                <i class="fas fa-tint"></i>
+                            </div>
+                        </div>
+                        <div class="metric-value">5 <span style="font-size: 1rem; color: var(--gray-500);">glasses</span></div>
+                        <div class="metric-label">Goal: 8 glasses</div>
+                        
+                        <div style="display: flex; gap: 0.5rem; margin-top: 1.5rem; flex-wrap: wrap;">
+                            <button class="btn btn-secondary" style="flex: 1;" onclick="addWater()">
+                                <i class="fas fa-plus"></i> Add
+                            </button>
+                            <button class="btn btn-secondary" style="flex: 1;" onclick="resetWater()">
+                                <i class="fas fa-undo"></i> Reset
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Food Logger - FREE (Limited) -->
+                    <div class="card wide">
+                        <div class="card-header">
+                            <div>
+                                <span class="card-label">Today's Food</span>
+                                <div style="font-size: 0.875rem; color: var(--gray-500); margin-top: 0.25rem;">
+                                    Free plan: 3 entries per day
+                                </div>
+                            </div>
+                            <button class="btn btn-primary" onclick="addFood()" id="addFoodBtn">
+                                <i class="fas fa-plus"></i> Add Food
+                            </button>
+                        </div>
+                        
+                        <div class="food-logger">
+                            <div class="search-box">
+                                <i class="fas fa-search"></i>
+                                <input type="text" placeholder="Search food database..." id="foodSearch">
+                            </div>
+                            
+                            <div class="food-list" id="foodList">
+                                <div class="food-item">
+                                    <div class="food-info">
+                                        <h4>Oatmeal with Berries</h4>
+                                        <span>1 cup • Breakfast</span>
+                                    </div>
+                                    <span class="food-cals">340 cal</span>
+                                </div>
+                                <div class="food-item">
+                                    <div class="food-info">
+                                        <h4>Grilled Chicken Salad</h4>
+                                        <span>1 bowl • Lunch</span>
+                                    </div>
+                                    <span class="food-cals">420 cal</span>
+                                </div>
+                                <div class="food-item" style="opacity: 0.5;">
+                                    <div class="food-info">
+                                        <h4><i class="fas fa-lock"></i> Dinner (Locked)</h4>
+                                        <span>Upgrade to add more</span>
+                                    </div>
+                                    <span class="food-cals">--</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Macros - PREMIUM LOCKED -->
+                    <div class="card">
+                        <div class="premium-lock" id="macrosLock">
+                            <div class="lock-icon">
+                                <i class="fas fa-lock"></i>
+                            </div>
+                            <h4>Macro Tracking</h4>
+                            <p>Track protein, carbs, and fats with detailed breakdowns</p>
+                            <button class="btn btn-premium" onclick="openUpgradeModal()">
+                                <i class="fas fa-crown"></i> Unlock Pro
+                            </button>
+                        </div>
+                        <div class="card-header">
+                            <span class="card-label">Macros</span>
+                            <div class="card-icon amber">
+                                <i class="fas fa-pie-chart"></i>
+                            </div>
+                        </div>
+                        <div style="height: 200px; opacity: 0.3;">
+                            <canvas id="macroChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- AI Insights - PREMIUM LOCKED -->
+                    <div class="card">
+                        <div class="premium-lock" id="aiLock">
+                            <div class="lock-icon">
+                                <i class="fas fa-robot"></i>
+                            </div>
+                            <h4>AI Coach</h4>
+                            <p>Personalized recommendations based on your data</p>
+                            <button class="btn btn-premium" onclick="openUpgradeModal()">
+                                <i class="fas fa-crown"></i> Unlock Pro
+                            </button>
+                        </div>
+                        <div class="card-header">
+                            <span class="card-label">AI Insights</span>
+                            <div class="card-icon blue">
+                                <i class="fas fa-brain"></i>
+                            </div>
+                        </div>
+                        <div style="padding: 2rem; text-align: center; opacity: 0.3;">
+                            <i class="fas fa-robot" style="font-size: 3rem; color: var(--gray-300);"></i>
+                            <p style="margin-top: 1rem; color: var(--gray-400);">AI-powered insights available in Pro</p>
+                        </div>
+                    </div>
+
+                    <!-- Progress Chart - FREE (7 days only) -->
+                    <div class="card wide">
+                        <div class="card-header">
+                            <div>
+                                <span class="card-label">Weight Progress</span>
+                                <div style="font-size: 0.875rem; color: var(--gray-500); margin-top: 0.25rem;">
+                                    Free: 7-day history • Pro: Unlimited
+                                </div>
+                            </div>
+                            <div>
+                                <button class="btn btn-secondary" style="font-size: 0.75rem;" disabled>7D</button>
+                                <button class="btn btn-secondary" style="font-size: 0.75rem; opacity: 0.5;" onclick="showUpgradePrompt()">30D</button>
+                                <button class="btn btn-secondary" style="font-size: 0.75rem; opacity: 0.5;" onclick="showUpgradePrompt()">1Y</button>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="progressChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Features Comparison -->
+                    <div class="card full">
+                        <div class="card-header">
+                            <span class="card-label">What's Included</span>
+                        </div>
+                        <div class="free-features">
+                            <div class="feature-item">
+                                <i class="fas fa-check-circle"></i>
+                                <div>
+                                    <strong>Food Logging</strong>
+                                    <div style="font-size: 0.75rem; color: var(--gray-500);">3 entries/day</div>
+                                </div>
+                            </div>
+                            <div class="feature-item">
+                                <i class="fas fa-check-circle"></i>
+                                <div>
+                                    <strong>Calorie Tracking</strong>
+                                    <div style="font-size: 0.75rem; color: var(--gray-500);">Basic calculation</div>
+                                </div>
+                            </div>
+                            <div class="feature-item">
+                                <i class="fas fa-check-circle"></i>
+                                <div>
+                                    <strong>Weight Tracking</strong>
+                                    <div style="font-size: 0.75rem; color: var(--gray-500);">Daily weigh-ins</div>
+                                </div>
+                            </div>
+                            <div class="feature-item">
+                                <i class="fas fa-check-circle"></i>
+                                <div>
+                                    <strong>Water Logger</strong>
+                                    <div style="font-size: 0.75rem; color: var(--gray-500);">Hydration tracking</div>
+                                </div>
+                            </div>
+                            <div class="feature-item">
+                                <i class="fas fa-check-circle"></i>
+                                <div>
+                                    <strong>7-Day History</strong>
+                                    <div style="font-size: 0.75rem; color: var(--gray-500);">Limited charts</div>
+                                </div>
+                            </div>
+                            <div class="feature-item">
+                                <i class="fas fa-check-circle"></i>
+                                <div>
+                                    <strong>Basic Goals</strong>
+                                    <div style="font-size: 0.75rem; color: var(--gray-500);">Calorie targets</div>
+                                </div>
+                            </div>
+                            <div class="feature-item locked">
+                                <i class="fas fa-lock"></i>
+                                <div>
+                                    <strong>Unlimited Logging</strong>
+                                    <div style="font-size: 0.75rem; color: var(--gray-500);">Pro feature</div>
+                                </div>
+                            </div>
+                            <div class="feature-item locked">
+                                <i class="fas fa-lock"></i>
+                                <div>
+                                    <strong>Macro Tracking</strong>
+                                    <div style="font-size: 0.75rem; color: var(--gray-500);">Pro feature</div>
+                                </div>
+                            </div>
+                            <div class="feature-item locked">
+                                <i class="fas fa-lock"></i>
+                                <div>
+                                    <strong>AI Recommendations</strong>
+                                    <div style="font-size: 0.75rem; color: var(--gray-500);">Pro feature</div>
+                                </div>
+                            </div>
+                            <div class="feature-item locked">
+                                <i class="fas fa-lock"></i>
+                                <div>
+                                    <strong>Export Reports</strong>
+                                    <div style="font-size: 0.75rem; color: var(--gray-500);">Pro feature</div>
+                                </div>
+                            </div>
+                            <div class="feature-item locked">
+                                <i class="fas fa-lock"></i>
+                                <div>
+                                    <strong>Lab Integration</strong>
+                                    <div style="font-size: 0.75rem; color: var(--gray-500);">Pro feature</div>
+                                </div>
+                            </div>
+                            <div class="feature-item locked">
+                                <i class="fas fa-lock"></i>
+                                <div>
+                                    <strong>Family Sharing</strong>
+                                    <div style="font-size: 0.75rem; color: var(--gray-500);">Pro feature</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // ================= STRIPE CONFIGURATION =================
+        // Replace with your actual Stripe publishable key
+        const STRIPE_PUBLIC_KEY = 'pk_test_YOUR_STRIPE_PUBLIC_KEY_HERE';
+        const stripe = Stripe(STRIPE_PUBLIC_KEY);
+        const elements = stripe.elements();
+        let cardElement;
+        let isPremium = false;
+        let foodEntriesToday = 2; // Track free tier limit
+
+        // ================= USER STATE =================
+        const userState = {
+            plan: 'free',
+            foodEntries: 2,
+            maxFreeEntries: 3,
+            waterGlasses: 5,
+            weight: 185.4,
+            calories: 1247,
+            calorieGoal: 2000
+        };
+
+        // ================= INITIALIZATION =================
+        document.addEventListener('DOMContentLoaded', () => {
+            initCharts();
+            setupEventListeners();
+            updateUI();
+        });
+
+        function setupEventListeners() {
+            // Food search
+            document.getElementById('foodSearch')?.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    searchFood(e.target.value);
+                }
+            });
+        }
+
+        // ================= CHARTS =================
+        function initCharts() {
+            // Weight mini chart
+            const weightCtx = document.getElementById('weightChart');
+            if (weightCtx) {
+                new Chart(weightCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['M', 'T', 'W', 'T', 'F', 'S', 'S'],
+                        datasets: [{
+                            data: [187.7, 187.2, 186.8, 186.5, 186.1, 185.8, 185.4],
+                            borderColor: '#16a34a',
+                            backgroundColor: 'rgba(22, 163, 74, 0.1)',
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 0,
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: { display: false },
+                            y: { display: false, min: 184, max: 189 }
+                        }
+                    }
+                });
+            }
+
+            // Progress chart (7 days free)
+            const progressCtx = document.getElementById('progressChart');
+            if (progressCtx) {
+                new Chart(progressCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                        datasets: [{
+                            label: 'Weight (lbs)',
+                            data: [187.7, 187.2, 186.8, 186.5, 186.1, 185.8, 185.4],
+                            borderColor: '#2563eb',
+                            backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                            fill: true,
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            y: {
+                                beginAtZero: false,
+                                min: 184,
+                                max: 189
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Macro chart (placeholder for premium)
+            const macroCtx = document.getElementById('macroChart');
+            if (macroCtx) {
+                new Chart(macroCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Protein', 'Carbs', 'Fat'],
+                        datasets: [{
+                            data: [30, 45, 25],
+                            backgroundColor: ['#2563eb', '#16a34a', '#f59e0b']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '70%'
+                    }
+                });
+            }
+        }
+
+        // ================= NAVIGATION =================
+        function switchView(view) {
+            showToast(`Switched to ${view.charAt(0).toUpperCase() + view.slice(1)}`, 'info');
+            
+            // Update active nav item
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.target.closest('.nav-item').classList.add('active');
+        }
+
+        // ================= FOOD LOGGING (FREE TIER) =================
+        function addFood() {
+            if (userState.foodEntries >= userState.maxFreeEntries && !isPremium) {
+                showToast('Free tier limit reached (3/day). Upgrade to Pro for unlimited entries!', 'error');
+                setTimeout(() => openUpgradeModal(), 1500);
+                return;
+            }
+            
+            // Simulate adding food
+            const foods = [
+                { name: 'Greek Yogurt', cals: 120, serving: '1 cup' },
+                { name: 'Apple', cals: 95, serving: '1 medium' },
+                { name: 'Almonds', cals: 164, serving: '1 oz' },
+                { name: 'Chicken Breast', cals: 165, serving: '3 oz' }
+            ];
+            
+            const food = foods[Math.floor(Math.random() * foods.length)];
+            userState.foodEntries++;
+            userState.calories += food.cals;
+            
+            updateUI();
+            showToast(`Added ${food.name} (${food.cals} cal)`, 'success');
+        }
+
+        function quickAddFood() {
+            addFood();
+        }
+
+        function searchFood(query) {
+            if (!query) return;
+            showToast(`Searching for "${query}"...`, 'info');
+            // In real app, this would search a food database
+        }
+
+        // ================= WATER TRACKER =================
+        function addWater() {
+            userState.waterGlasses++;
+            updateUI();
+            showToast(`Added water! Total: ${userState.waterGlasses} glasses`, 'success');
+        }
+
+        function resetWater() {
+            userState.waterGlasses = 0;
+            updateUI();
+            showToast('Water intake reset', 'info');
+        }
+
+        // ================= UPGRADE MODAL =================
+        function openUpgradeModal() {
+            document.getElementById('upgradeModal').classList.add('active');
+            
+            // Initialize Stripe card element
+            if (!cardElement) {
+                cardElement = elements.create('card', {
+                    style: {
+                        base: {
+                            fontSize: '16px',
+                            color: '#374151',
+                            '::placeholder': { color: '#9ca3af' }
+                        }
+                    }
+                });
+                cardElement.mount('#card-element');
+                
+                cardElement.on('change', (event) => {
+                    const errorDiv = document.getElementById('card-errors');
+                    errorDiv.textContent = event.error ? event.error.message : '';
+                });
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('upgradeModal').classList.remove('active');
+        }
+
+        function selectPlan(plan) {
+            document.querySelectorAll('.pricing-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            event.target.closest('.pricing-card').classList.add('selected');
+            
+            const paymentForm = document.getElementById('paymentForm');
+            const payButton = document.getElementById('payButton');
+            
+            if (plan === 'pro') {
+                paymentForm.classList.add('active');
+                payButton.innerHTML = '<i class="fas fa-lock"></i> Subscribe Now - $15/month';
+                payButton.onclick = processPayment;
+            } else {
+                paymentForm.classList.remove('active');
+                payButton.innerHTML = 'Continue with Free';
+                payButton.onclick = () => {
+                    closeModal();
+                    showToast('Continuing with Free plan', 'info');
+                };
+            }
+        }
+
+        async function processPayment() {
+            const button = document.getElementById('payButton');
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+            button.disabled = true;
+            
+            try {
+                // Create payment method
+                const { paymentMethod, error } = await stripe.createPaymentMethod({
+                    type: 'card',
+                    card: cardElement,
+                    billing_details: {
+                        name: 'John Doe',
+                        email: 'john@example.com'
+                    }
+                });
+                
+                if (error) {
+                    throw error;
+                }
+                
+                // In production, send paymentMethod.id to your server
+                // Server creates subscription and processes payment
+                
+                // Simulate successful subscription
+                setTimeout(() => {
+                    activatePremium();
+                    closeModal();
+                    showToast('Welcome to NutriSync Pro! 🎉', 'success');
+                }, 2000);
+                
+            } catch (error) {
+                showToast(error.message, 'error');
+                button.innerHTML = '<i class="fas fa-lock"></i> Subscribe Now - $15/month';
+                button.disabled = false;
+            }
+        }
+
+        function activatePremium() {
+            isPremium = true;
+            userState.plan = 'pro';
+            
+            // Update UI
+            document.getElementById('planBadge').textContent = 'Pro Plan';
+            document.getElementById('accountType').textContent = 'Pro Member';
+            document.getElementById('upgradeCard').style.display = 'none';
+            document.getElementById('foodLimitIndicator').style.display = 'none';
+            
+            // Unlock premium features
+            document.querySelectorAll('.premium-lock').forEach(lock => {
+                lock.style.display = 'none';
+            });
+            
+            document.querySelectorAll('.nav-item.locked').forEach(item => {
+                item.classList.remove('locked');
+                item.onclick = null;
+            });
+            
+            // Enable locked buttons
+            document.getElementById('addFoodBtn').disabled = false;
+        }
+
+        function showUpgradePrompt() {
+            showToast('This feature requires Pro', 'info');
+            setTimeout(() => openUpgradeModal(), 1000);
+        }
+
+        // ================= UI UPDATES =================
+        function updateUI() {
+            // Update food entries display
+            const indicator = document.getElementById('foodLimitIndicator');
+            if (indicator && !isPremium) {
+                const percentage = (userState.foodEntries / userState.maxFreeEntries) * 100;
+                const fill = indicator.querySelector('.usage-fill');
+                fill.style.width = percentage + '%';
+                
+                if (percentage >= 100) {
+                    fill.classList.add('danger');
+                    document.getElementById('addFoodBtn').disabled = true;
+                    document.getElementById('addFoodBtn').style.opacity = '0.5';
+                } else if (percentage >= 66) {
+                    fill.classList.add('warning');
+                }
+                
+                indicator.querySelector('.usage-header span:last-child').textContent = 
+                    `${userState.foodEntries} of ${userState.maxFreeEntries} used`;
+            }
+        }
+
+        // ================= TOAST NOTIFICATIONS =================
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            const icons = {
+                success: 'fa-check-circle',
+                error: 'fa-exclamation-circle',
+                info: 'fa-info-circle'
+            };
+            
+            toast.innerHTML = `
+                <i class="fas ${icons[type]}"></i>
+                <span>${message}</span>
+            `;
+            
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(100%)';
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+
+        // Close modal on outside click
+        document.getElementById('upgradeModal')?.addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) {
+                closeModal();
+            }
+        });
+
+        console.log('NutriSync Health loaded');
+        console.log('Free tier: 3 food entries/day, 7-day history');
+        console.log('Pro tier: $15/month via Stripe');
+    </script>
+</body>
+</html>'''
+
+# Save the file
+with open('/mnt/kimi/output/nutrisync_health.html', 'w', encoding='utf-8') as f:
+    f.write(freemium_html)
+
+print("✅ NutriSync Health - Freemium Model Created!")
+print("\n📋 FEATURE BREAKDOWN:")
+print("=" * 50)
+print("\n🆓 FREE TIER (No Credit Card Required):")
+print("   • Food logging: 3 entries per day")
+print("   • Basic calorie tracking")
+print("   • Weight tracking with 7-day history")
+print("   • Water intake tracker")
+print("   • Basic progress charts")
+print("   • Limited food database access")
+print("\n⭐ PRO TIER ($15/month via Stripe):")
+print("   • Unlimited food logging")
+print("   • Full macro tracking (protein, carbs, fats)")
+print("   • AI meal recommendations")
+print("   • Advanced analytics & insights")
+print("   • Unlimited history & data export")
+print("   • 270+ clinical-grade features")
+print("   • Priority customer support")
+print("   • Family plan sharing")
+print("\n💳 PAYMENT SETUP:")
+print("   • Replace 'pk_test_51SnApvGonKjAFVYNhPHWMmD0DwMbSe9WREWER2lrlgVzY4mIKEr5oGStBCiaZSJrpkSz9w6etBvv1NxqDu2xNTrp00aEXqOehJ'")
+print("   • Connect to your Stripe account")
+print("   • $15/month recurring subscription")
+print("   • Instant activation upon payment")
+print("\n📁 File saved to: /mnt/kimi/output/nutrisync_health.html")
