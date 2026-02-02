@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NutriSync | World's First Clinical Health Ecosystem</title>
     <script src="https://js.stripe.com/v3/"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -34,6 +36,8 @@
         .nav-item:hover { background: rgba(255,255,255,0.05); color: white; transform: translateX(5px); }
         .nav-item.active { background: rgba(0, 102, 255, 0.2); color: var(--primary); border: 1px solid rgba(0, 102, 255, 0.3); }
         .nav-item.premium::after { content: 'PRO'; margin-left: auto; font-size: 0.6rem; padding: 0.25rem 0.5rem; background: var(--gradient-premium); color: black; border-radius: 20px; font-weight: 800; }
+        .nav-item.unlocked { color: #FFD700; }
+        .nav-item.unlocked::after { content: '✓'; margin-left: auto; font-size: 0.8rem; color: var(--secondary); }
         .feature-count { margin-top: auto; padding: 1.5rem; }
         .feature-count-box { padding: 1rem; background: rgba(0,0,0,0.3); border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); }
         .feature-count h4 { font-size: 0.875rem; color: rgba(255,255,255,0.6); margin-bottom: 0.5rem; }
@@ -49,6 +53,7 @@
         .btn-premium { background: var(--gradient-premium); color: black; font-weight: 700; }
         .btn-glass { background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); }
         .btn-glass:hover { background: rgba(255,255,255,0.2); }
+        .btn-success { background: var(--secondary); color: black; }
         .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; margin-bottom: 2rem; }
         .stat-card { background: rgba(30, 41, 59, 0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 1.5rem; position: relative; overflow: hidden; }
         .stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--gradient-1); }
@@ -57,6 +62,8 @@
         .stat-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; }
         .stat-icon.blue { background: rgba(0, 102, 255, 0.2); color: var(--primary); }
         .stat-icon.green { background: rgba(0, 212, 170, 0.2); color: var(--secondary); }
+        .stat-icon.purple { background: rgba(124, 58, 237, 0.2); color: var(--accent); }
+        .stat-icon.orange { background: rgba(255, 165, 2, 0.2); color: var(--warning); }
         .stat-value { font-size: 2.5rem; font-weight: 800; margin-bottom: 0.5rem; min-height: 3rem; display: flex; align-items: center; }
         .stat-value.loading { color: rgba(255,255,255,0.2); font-size: 1.5rem; }
         .stat-change { font-size: 0.875rem; display: flex; align-items: center; gap: 0.25rem; color: rgba(255,255,255,0.4); }
@@ -71,9 +78,6 @@
         .world-first-badge { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; background: linear-gradient(135deg, #FFD700 0%, #FFA502 100%); color: black; border-radius: 50px; font-size: 0.75rem; font-weight: 800; margin-bottom: 1rem; }
         .empty-state { padding: 3rem; text-align: center; color: rgba(255,255,255,0.4); }
         .empty-state i { font-size: 3rem; margin-bottom: 1rem; opacity: 0.3; }
-        .empty-state p { font-size: 0.9rem; }
-        .loading-skeleton { background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.05) 75%); background-size: 200% 100%; animation: loading 1.5s infinite; border-radius: 8px; height: 20px; margin-bottom: 0.75rem; }
-        @keyframes loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
         .breathing-container { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 300px; position: relative; }
         .breath-circle { width: 200px; height: 200px; border-radius: 50%; background: var(--gradient-1); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 700; position: relative; box-shadow: 0 0 60px rgba(0, 102, 255, 0.5); animation: breathe 8s infinite ease-in-out; }
         @keyframes breathe { 0%, 100% { transform: scale(1); opacity: 0.8; } 50% { transform: scale(1.3); opacity: 1; box-shadow: 0 0 100px rgba(0, 212, 170, 0.6); } }
@@ -84,7 +88,8 @@
         .workout-cat { padding: 1.5rem; background: rgba(0,0,0,0.3); border-radius: 12px; text-align: center; cursor: pointer; transition: all 0.3s; border: 1px solid rgba(255,255,255,0.05); opacity: 0.6; }
         .workout-cat:hover { opacity: 1; background: rgba(255,255,255,0.05); transform: translateY(-3px); border-color: var(--primary); }
         .workout-cat i { font-size: 2rem; margin-bottom: 0.75rem; display: block; }
-        .premium-overlay { position: absolute; inset: 0; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px); border-radius: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10; gap: 1rem; text-align: center; padding: 2rem; }
+        .premium-overlay { position: absolute; inset: 0; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px); border-radius: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10; gap: 1rem; text-align: center; padding: 2rem; transition: opacity 0.3s; }
+        .premium-overlay.hidden-overlay { opacity: 0; pointer-events: none; }
         .premium-icon { font-size: 3rem; background: var(--gradient-premium); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); display: none; align-items: center; justify-content: center; z-index: 1000; }
         .modal-overlay.active { display: flex; }
@@ -105,8 +110,22 @@
         .hidden { display: none !important; }
         .connect-device-btn { width: 100%; padding: 0.75rem; background: rgba(0,0,0,0.3); border: 1px dashed rgba(255,255,255,0.2); border-radius: 8px; color: rgba(255,255,255,0.6); cursor: pointer; transition: all 0.3s; margin-top: 1rem; }
         .connect-device-btn:hover { border-color: var(--secondary); color: var(--secondary); }
-        @media (max-width: 1200px) { .module-grid { grid-template-columns: 1fr; } .module-card.wide { grid-column: span 1; } .stats-grid { grid-template-columns: 1fr 1fr; } .pricing-grid { grid-template-columns: 1fr; } }
-        @media (max-width: 768px) { .app-container { grid-template-columns: 1fr; } .sidebar { display: none; } .main-content { margin-left: 0; } }
+        
+        /* Profile Form Styles */
+        .profile-form { display: grid; gap: 1rem; }
+        .form-group { display: flex; flex-direction: column; gap: 0.5rem; }
+        .form-group label { font-size: 0.875rem; color: rgba(255,255,255,0.7); font-weight: 500; }
+        .form-group input { padding: 0.75rem 1rem; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; font-size: 1rem; }
+        .form-group input:focus { outline: none; border-color: var(--primary); }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .chart-container { background: rgba(0,0,0,0.3); border-radius: 12px; padding: 1rem; margin-top: 1rem; height: 300px; }
+        .metric-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1rem; }
+        .metric-card { background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 12px; text-align: center; border: 1px solid rgba(255,255,255,0.1); }
+        .metric-value { font-size: 1.5rem; font-weight: 700; color: var(--secondary); }
+        .metric-label { font-size: 0.75rem; color: rgba(255,255,255,0.5); margin-top: 0.25rem; }
+        
+        @media (max-width: 1200px) { .module-grid { grid-template-columns: 1fr; } .module-card.wide { grid-column: span 1; } .stats-grid { grid-template-columns: 1fr 1fr; } .pricing-grid { grid-template-columns: 1fr; } .metric-cards { grid-template-columns: 1fr 1fr; } }
+        @media (max-width: 768px) { .app-container { grid-template-columns: 1fr; } .sidebar { display: none; } .main-content { margin-left: 0; } .form-row { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
@@ -127,7 +146,7 @@
             <div class="access-code-section">
                 <h3><i class="fas fa-key"></i> Have an Access Code?</h3>
                 <p style="font-size: 0.875rem; color: rgba(255,255,255,0.6); margin-bottom: 1rem;">Enter your architect code for unlimited free Pro access</p>
-                <input type="text" class="access-input" id="accessCodeInput" placeholder="XXXX-XXXX-XXXX" onkeyup="checkAccessCode(event)">
+                <input type="text" class="access-input" id="accessCodeInput" placeholder="architect_x_2025" onkeyup="checkAccessCode(event)">
                 <button class="btn btn-premium" style="width: 100%;" onclick="verifyAccessCode()">
                     <i class="fas fa-unlock"></i> Unlock with Code
                 </button>
@@ -141,8 +160,8 @@
                     <h3>Starter</h3>
                     <div class="price">$0<span>/month</span></div>
                     <ul style="list-style: none; margin-top: 1.5rem; display: grid; gap: 0.75rem;">
-                        <li style="font-size: 0.9rem; color: rgba(255,255,255,0.7);"><i class="fas fa-check" style="color: var(--secondary); margin-right: 0.5rem;"></i> Basic food logging</li>
-                        <li style="font-size: 0.9rem; color: rgba(255,255,255,0.7);"><i class="fas fa-check" style="color: var(--secondary); margin-right: 0.5rem;"></i> 3 workouts/week</li>
+                        <li style="font-size: 0.9rem; color: rgba(255,255,255,0.7);"><i class="fas fa-check" style="color: var(--secondary); margin-right: 0.5rem;"></i> Basic tracking</li>
+                        <li style="font-size: 0.9rem; color: rgba(255,255,255,0.4);"><i class="fas fa-times" style="margin-right: 0.5rem;"></i> Advanced charts</li>
                         <li style="font-size: 0.9rem; color: rgba(255,255,255,0.4);"><i class="fas fa-times" style="margin-right: 0.5rem;"></i> AI Coach</li>
                     </ul>
                 </div>
@@ -152,7 +171,7 @@
                     <div class="price">$15<span>/month</span></div>
                     <ul style="list-style: none; margin-top: 1.5rem; display: grid; gap: 0.75rem;">
                         <li style="font-size: 0.9rem; color: rgba(255,255,255,0.7);"><i class="fas fa-check" style="color: var(--secondary); margin-right: 0.5rem;"></i> Unlimited everything</li>
-                        <li style="font-size: 0.9rem; color: rgba(255,255,255,0.7);"><i class="fas fa-check" style="color: var(--secondary); margin-right: 0.5rem;"></i> 274 features</li>
+                        <li style="font-size: 0.9rem; color: rgba(255,255,255,0.7);"><i class="fas fa-check" style="color: var(--secondary); margin-right: 0.5rem;"></i> All charts & goals</li>
                         <li style="font-size: 0.9rem; color: rgba(255,255,255,0.7);"><i class="fas fa-check" style="color: var(--secondary); margin-right: 0.5rem;"></i> AI Personal Coach</li>
                     </ul>
                 </div>
@@ -188,6 +207,14 @@
                     <i class="fas fa-th-large"></i>
                     <span>Command Center</span>
                 </div>
+                <div class="nav-item" onclick="switchTab('profile')">
+                    <i class="fas fa-user-circle"></i>
+                    <span>Profile & Goals</span>
+                </div>
+                <div class="nav-item" onclick="switchTab('body')">
+                    <i class="fas fa-weight"></i>
+                    <span>Body Metrics</span>
+                </div>
                 <div class="nav-item" onclick="switchTab('nutrition')">
                     <i class="fas fa-dna"></i>
                     <span>Smart Nutrition</span>
@@ -202,15 +229,15 @@
                 </div>
 
                 <div class="nav-section">Pro Features</div>
-                <div class="nav-item premium" onclick="checkProAccess('family')">
+                <div class="nav-item premium" id="navFamily" onclick="checkProAccess('family')">
                     <i class="fas fa-users"></i>
                     <span>Family Network</span>
                 </div>
-                <div class="nav-item premium" onclick="checkProAccess('reports')">
+                <div class="nav-item premium" id="navReports" onclick="checkProAccess('reports')">
                     <i class="fas fa-file-medical"></i>
                     <span>Clinical Reports</span>
                 </div>
-                <div class="nav-item premium" onclick="checkProAccess('vr')">
+                <div class="nav-item premium" id="navVR" onclick="checkProAccess('vr')">
                     <i class="fas fa-vr-cardboard"></i>
                     <span>VR Training</span>
                 </div>
@@ -226,6 +253,7 @@
         </aside>
 
         <main class="main-content">
+            <!-- DASHBOARD -->
             <div id="dashboardTab">
                 <div class="top-header">
                     <div class="page-title">
@@ -236,7 +264,7 @@
                         <button class="btn btn-glass" onclick="openUpgradeModal()">
                             <i class="fas fa-key"></i> Enter Code
                         </button>
-                        <button class="btn btn-primary" onclick="openUpgradeModal()">
+                        <button class="btn btn-primary" id="upgradeBtn" onclick="openUpgradeModal()">
                             <i class="fas fa-crown"></i> Upgrade to Pro
                         </button>
                     </div>
@@ -245,35 +273,35 @@
                 <div class="stats-grid">
                     <div class="stat-card">
                         <div class="stat-header">
-                            <span class="stat-label">Today's Energy</span>
-                            <div class="stat-icon blue"><i class="fas fa-bolt"></i></div>
+                            <span class="stat-label">Current Weight</span>
+                            <div class="stat-icon blue"><i class="fas fa-weight"></i></div>
                         </div>
-                        <div class="stat-value loading">--</div>
-                        <div class="stat-change">Connect a device to sync</div>
+                        <div class="stat-value" id="dashWeight">--</div>
+                        <div class="stat-change">Set up your profile</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-header">
-                            <span class="stat-label">Metabolic Rate</span>
-                            <div class="stat-icon green"><i class="fas fa-fire"></i></div>
+                            <span class="stat-label">Goal Weight</span>
+                            <div class="stat-icon green"><i class="fas fa-bullseye"></i></div>
                         </div>
-                        <div class="stat-value loading">--</div>
-                        <div class="stat-change">No data available</div>
+                        <div class="stat-value" id="dashGoal">--</div>
+                        <div class="stat-change" id="dashToGo">-- lbs to go</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-header">
-                            <span class="stat-label">Recovery Score</span>
-                            <div class="stat-icon blue"><i class="fas fa-heartbeat"></i></div>
+                            <span class="stat-label">BMI</span>
+                            <div class="stat-icon purple"><i class="fas fa-calculator"></i></div>
                         </div>
-                        <div class="stat-value loading">--</div>
-                        <div class="stat-change">Sync required</div>
+                        <div class="stat-value" id="dashBMI">--</div>
+                        <div class="stat-change" id="dashBMICat">Calculate in profile</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-header">
-                            <span class="stat-label">Mindfulness</span>
-                            <div class="stat-icon green"><i class="fas fa-om"></i></div>
+                            <span class="stat-label">Age</span>
+                            <div class="stat-icon orange"><i class="fas fa-birthday-cake"></i></div>
                         </div>
-                        <div class="stat-value loading">--</div>
-                        <div class="stat-change">Start a session</div>
+                        <div class="stat-value" id="dashAge">--</div>
+                        <div class="stat-change">years old</div>
                     </div>
                 </div>
 
@@ -281,22 +309,15 @@
                     <div class="module-card wide">
                         <div class="module-header">
                             <div class="module-title">
-                                <div class="module-icon"><i class="fas fa-utensils"></i></div>
+                                <div class="module-icon"><i class="fas fa-chart-line"></i></div>
                                 <div>
-                                    <h3>Smart Nutrition AI</h3>
-                                    <span>Powered by 2M+ food database</span>
+                                    <h3>Weight Progress</h3>
+                                    <span>Track your journey to goal</span>
                                 </div>
                             </div>
                         </div>
-                        <div class="world-first-badge"><i class="fas fa-globe"></i> WORLD FIRST: Predictive Metabolic Analysis</div>
-                        
-                        <div class="empty-state">
-                            <i class="fas fa-utensils"></i>
-                            <h4 style="margin-bottom: 0.5rem; color: rgba(255,255,255,0.7);">No Food Logged Today</h4>
-                            <p>Search for foods or use AI camera scan to get started</p>
-                            <button class="btn btn-primary" style="margin-top: 1rem;">
-                                <i class="fas fa-plus"></i> Log First Meal
-                            </button>
+                        <div class="chart-container">
+                            <canvas id="weightChart"></canvas>
                         </div>
                     </div>
 
@@ -307,7 +328,7 @@
                                 <div><h3>Neuro-Breathing</h3><span>DeepBreathe Integration</span></div>
                             </div>
                         </div>
-                        <div class="world-first-badge"><i class="fas fa-lungs"></i> WORLD FIRST: HRV-Optimized Breathing</div>
+                        <div class="world-first-badge"><i class="fas fa-lungs"></i> WORLD FIRST: HRV-Optimized</div>
                         <div class="breathing-container">
                             <div class="breath-circle"><span>Start</span></div>
                             <div class="breath-controls">
@@ -327,28 +348,12 @@
                         </div>
                         <div class="world-first-badge"><i class="fas fa-trophy"></i> WORLD FIRST: AI Form Correction</div>
                         <div class="workout-categories">
-                            <div class="workout-cat"><i class="fas fa-spa" style="color: var(--secondary);"></i><h4>Yoga Flow</h4></div>
-                            <div class="workout-cat"><i class="fas fa-fire-alt" style="color: var(--danger);"></i><h4>HIIT Cardio</h4></div>
+                            <div class="workout-cat"><i class="fas fa-spa" style="color: var(--secondary);"></i><h4>Yoga</h4></div>
+                            <div class="workout-cat"><i class="fas fa-fire-alt" style="color: var(--danger);"></i><h4>HIIT</h4></div>
                             <div class="workout-cat"><i class="fas fa-dumbbell" style="color: var(--primary);"></i><h4>Strength</h4></div>
                             <div class="workout-cat"><i class="fas fa-yin-yang" style="color: var(--accent);"></i><h4>Tai Chi</h4></div>
                             <div class="workout-cat"><i class="fas fa-female" style="color: #ff6b9d;"></i><h4>Pilates</h4></div>
                             <div class="workout-cat"><i class="fas fa-hand-rock" style="color: var(--warning);"></i><h4>Boxing</h4></div>
-                        </div>
-                    </div>
-
-                    <div class="module-card wide">
-                        <div class="module-header">
-                            <div class="module-title">
-                                <div class="module-icon" style="background: var(--gradient-2);"><i class="fas fa-brain"></i></div>
-                                <div><h3>Dr. Synapse AI</h3><span>Your personal health architect</span></div>
-                            </div>
-                        </div>
-                        <div class="world-first-badge"><i class="fas fa-microchip"></i> WORLD FIRST: Predictive Health AI</div>
-                        
-                        <div style="padding: 2rem; background: rgba(0,0,0,0.2); border-radius: 12px; text-align: center;">
-                            <i class="fas fa-robot" style="font-size: 3rem; color: var(--accent); margin-bottom: 1rem;"></i>
-                            <h4 style="margin-bottom: 0.5rem;">AI Coach Ready</h4>
-                            <p style="color: rgba(255,255,255,0.5); font-size: 0.9rem;">Connect your devices and log your first meal to get personalized recommendations</p>
                         </div>
                     </div>
 
@@ -374,36 +379,141 @@
                             <p>Upgrade to access all features</p>
                         </div>
                     </div>
+                </div>
+            </div>
 
-                    <div class="module-card">
-                        <div class="module-header">
-                            <div class="module-title">
-                                <div class="module-icon" style="background: linear-gradient(135deg, #00D4AA 0%, #7C3AED 100%);"><i class="fas fa-watch"></i></div>
-                                <div><h3>Bio-Sync</h3><span>Device ecosystem</span></div>
+            <!-- PROFILE TAB -->
+            <div id="profileTab" class="hidden">
+                <div class="top-header">
+                    <div class="page-title">
+                        <h2>Profile & Goals</h2>
+                        <p>Set up your body metrics and targets</p>
+                    </div>
+                </div>
+                
+                <div class="module-card" style="max-width: 800px;">
+                    <div class="module-header">
+                        <div class="module-title">
+                            <div class="module-icon"><i class="fas fa-user-edit"></i></div>
+                            <div><h3>Your Information</h3><span>Required for accurate tracking</span></div>
+                        </div>
+                    </div>
+                    
+                    <form class="profile-form" onsubmit="saveProfile(event)">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Current Weight (lbs)</label>
+                                <input type="number" id="currentWeight" placeholder="185" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Goal Weight (lbs)</label>
+                                <input type="number" id="goalWeight" placeholder="165" required>
                             </div>
                         </div>
-                        <div class="world-first-badge"><i class="fas fa-sync"></i> WORLD FIRST: Cross-Device AI Sync</div>
                         
-                        <div class="empty-state" style="padding: 2rem;">
-                            <i class="fas fa-watch" style="font-size: 2.5rem;"></i>
-                            <h4 style="margin-bottom: 0.5rem; color: rgba(255,255,255,0.7);">No Devices Connected</h4>
-                            <p style="font-size: 0.875rem;">Sync your Apple Watch, Oura Ring, or other devices</p>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Height (inches)</label>
+                                <input type="number" id="height" placeholder="70" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Age (years)</label>
+                                <input type="number" id="age" placeholder="32" required>
+                            </div>
                         </div>
                         
-                        <button class="connect-device-btn">
-                            <i class="fas fa-plus"></i> Connect First Device
+                        <div class="form-group">
+                            <label>Gender</label>
+                            <select id="gender" style="padding: 0.75rem 1rem; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; font-size: 1rem;">
+                                <option value="">Select...</option>
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">
+                            <i class="fas fa-save"></i> Save Profile & Calculate BMI
+                        </button>
+                    </form>
+                    
+                    <div id="profileResult" style="margin-top: 1.5rem; padding: 1rem; background: rgba(0,212,170,0.1); border-radius: 8px; display: none;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem; color: var(--secondary); margin-bottom: 0.5rem;">
+                            <i class="fas fa-check-circle"></i>
+                            <strong>Profile Saved!</strong>
+                        </div>
+                        <p style="color: rgba(255,255,255,0.7); font-size: 0.9rem;">Your BMI and goals have been calculated. Check the Body Metrics tab for charts.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BODY METRICS TAB -->
+            <div id="bodyTab" class="hidden">
+                <div class="top-header">
+                    <div class="page-title">
+                        <h2>Body Metrics</h2>
+                        <p>Visualize your progress</p>
+                    </div>
+                </div>
+                
+                <div class="metric-cards">
+                    <div class="metric-card">
+                        <div class="metric-value" id="metricWeight">--</div>
+                        <div class="metric-label">Current Weight (lbs)</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="metricGoal">--</div>
+                        <div class="metric-label">Goal Weight (lbs)</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="metricBMI">--</div>
+                        <div class="metric-label">BMI</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="metricProgress">--</div>
+                        <div class="metric-label">Progress %</div>
+                    </div>
+                </div>
+
+                <div class="module-card">
+                    <div class="module-header">
+                        <div class="module-title">
+                            <div class="module-icon"><i class="fas fa-chart-area"></i></div>
+                            <div><h3>Weight Journey</h3><span>Current vs Goal over time</span></div>
+                        </div>
+                    </div>
+                    <div class="chart-container" style="height: 400px;">
+                        <canvas id="bodyChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="module-card wide" style="margin-top: 1.5rem;">
+                    <div class="module-header">
+                        <div class="module-title">
+                            <div class="module-icon"><i class="fas fa-ruler-vertical"></i></div>
+                            <div><h3>Log Today's Weight</h3><span>Track your daily progress</span></div>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 1rem; align-items: flex-end;">
+                        <div class="form-group" style="flex: 1;">
+                            <label>Today's Weight (lbs)</label>
+                            <input type="number" id="logWeight" placeholder="Enter weight...">
+                        </div>
+                        <button class="btn btn-primary" onclick="logWeight()">
+                            <i class="fas fa-plus"></i> Log Entry
                         </button>
                     </div>
                 </div>
             </div>
 
+            <!-- OTHER TABS -->
             <div id="nutritionTab" class="hidden">
                 <div class="top-header">
                     <div class="page-title"><h2>Smart Nutrition</h2><p>AI-powered metabolic optimization</p></div>
                 </div>
                 <div class="module-card" style="padding: 4rem; text-align: center;">
                     <i class="fas fa-utensils" style="font-size: 4rem; color: var(--primary); margin-bottom: 1rem; opacity: 0.3;"></i>
-                    <h3 style="margin-bottom: 0.5rem;">Nutrition Dashboard</h3>
+                    <h3>Nutrition Dashboard</h3>
                     <p style="color: rgba(255,255,255,0.5);">Log your first meal to see your nutrition analytics</p>
                 </div>
             </div>
@@ -414,7 +524,7 @@
                 </div>
                 <div class="module-card" style="padding: 4rem; text-align: center;">
                     <i class="fas fa-dumbbell" style="font-size: 4rem; color: var(--danger); margin-bottom: 1rem; opacity: 0.3;"></i>
-                    <h3 style="margin-bottom: 0.5rem;">Workout Library</h3>
+                    <h3>Workout Library</h3>
                     <p style="color: rgba(255,255,255,0.5);">Select a workout category to begin your training</p>
                 </div>
             </div>
@@ -425,7 +535,7 @@
                 </div>
                 <div class="module-card" style="padding: 4rem; text-align: center;">
                     <i class="fas fa-wind" style="font-size: 4rem; color: var(--secondary); margin-bottom: 1rem; opacity: 0.3;"></i>
-                    <h3 style="margin-bottom: 0.5rem;">Mindfulness Center</h3>
+                    <h3>Mindfulness Center</h3>
                     <p style="color: rgba(255,255,255,0.5);">Start a breathing session to track your mindfulness</p>
                 </div>
             </div>
@@ -433,22 +543,48 @@
     </div>
 
     <script>
+        // Initialize user data
+        let userData = {
+            weight: null,
+            goalWeight: null,
+            height: null,
+            age: null,
+            gender: null,
+            bmi: null,
+            weightHistory: [],
+            isPremium: false
+        };
+        
+        let weightChartInstance = null;
+        let bodyChartInstance = null;
+
         const STRIPE_KEY = 'pk_test_51SnApvGonKjAFVYNhPHWMmD0DwMbSe9WREWER2lrlgVzY4mIKEr5oGStBCiaZSJrpkSz9w6etBvv1NxqDu2xNTrp00aEXqOehJ';
         const stripe = Stripe(STRIPE_KEY);
         const elements = stripe.elements();
         let cardElement = null;
-        let isPremium = false;
+
+        // Check for saved premium status
+        if (localStorage.getItem('nutrisync_premium') === 'true') {
+            activatePro();
+        }
 
         function switchTab(tab) {
             document.querySelectorAll('[id$="Tab"]').forEach(el => el.classList.add('hidden'));
             document.getElementById(tab + 'Tab').classList.remove('hidden');
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
             event.target.closest('.nav-item').classList.add('active');
+            
+            if (tab === 'body') {
+                updateBodyCharts();
+            }
         }
 
         function checkProAccess(feature) {
-            if (!isPremium) openUpgradeModal();
-            else showToast('Accessing ' + feature + '...', 'success');
+            if (!userData.isPremium) {
+                openUpgradeModal();
+            } else {
+                showToast('✓ Pro Feature Unlocked: ' + feature, 'success');
+            }
         }
 
         function openUpgradeModal() {
@@ -484,22 +620,56 @@
                 setTimeout(() => {
                     activatePro();
                     closeModal();
-                    showToast('Architect Access Granted! Pro Unlocked Forever!', 'success');
+                    showToast('🎉 Architect Access Granted! All 274 Pro Features Unlocked Forever!', 'success');
                 }, 1500);
             } else {
-                msg.innerHTML = '<span style="color: var(--danger);"><i class="fas fa-times-circle"></i> Invalid code. Try again.</span>';
+                msg.innerHTML = '<span style="color: var(--danger);"><i class="fas fa-times-circle"></i> Invalid code. Try: architect_x_2025</span>';
                 input.style.borderColor = 'var(--danger)';
                 setTimeout(() => { input.style.borderColor = ''; }, 2000);
             }
         }
 
         function activatePro() {
-            isPremium = true;
-            document.getElementById('proOverlay').style.display = 'none';
+            userData.isPremium = true;
+            localStorage.setItem('nutrisync_premium', 'true');
+            
+            // Hide premium overlays
+            const overlay = document.getElementById('proOverlay');
+            if (overlay) {
+                overlay.classList.add('hidden-overlay');
+                setTimeout(() => {
+                    overlay.style.display = 'none';
+                }, 300);
+            }
+            
+            // Update feature count
             document.getElementById('featureCount').textContent = '274';
-            document.querySelectorAll('.nav-item.premium').forEach(item => {
-                item.classList.remove('premium');
-                item.style.color = '#FFD700';
+            
+            // Update upgrade button
+            const upgradeBtn = document.getElementById('upgradeBtn');
+            if (upgradeBtn) {
+                upgradeBtn.innerHTML = '<i class="fas fa-check"></i> Pro Active';
+                upgradeBtn.classList.remove('btn-primary');
+                upgradeBtn.classList.add('btn-success');
+                upgradeBtn.onclick = null;
+            }
+            
+            // Unlock nav items
+            ['navFamily', 'navReports', 'navVR'].forEach(id => {
+                const item = document.getElementById(id);
+                if (item) {
+                    item.classList.remove('premium');
+                    item.classList.add('unlocked');
+                }
+            });
+            
+            // Show success state in all premium cards
+            document.querySelectorAll('.premium-overlay').forEach(el => {
+                el.innerHTML = '<div style="color: var(--secondary); font-size: 1.2rem;"><i class="fas fa-check-circle" style="font-size: 3rem; margin-bottom: 1rem;"></i><br>✓ UNLOCKED</div>';
+                setTimeout(() => {
+                    el.classList.add('hidden-overlay');
+                    setTimeout(() => el.style.display = 'none', 300);
+                }, 1000);
             });
         }
 
@@ -545,6 +715,151 @@
             }
         }
 
+        function saveProfile(e) {
+            e.preventDefault();
+            
+            userData.weight = parseFloat(document.getElementById('currentWeight').value);
+            userData.goalWeight = parseFloat(document.getElementById('goalWeight').value);
+            userData.height = parseFloat(document.getElementById('height').value);
+            userData.age = parseInt(document.getElementById('age').value);
+            userData.gender = document.getElementById('gender').value;
+            
+            // Calculate BMI
+            const heightM = userData.height * 0.0254;
+            userData.bmi = (userData.weight / (heightM * heightM)).toFixed(1);
+            
+            // Save to localStorage
+            localStorage.setItem('nutrisync_profile', JSON.stringify(userData));
+            
+            // Show success
+            document.getElementById('profileResult').style.display = 'block';
+            
+            // Update dashboard
+            updateDashboard();
+            
+            showToast('Profile saved! BMI: ' + userData.bmi, 'success');
+        }
+
+        function updateDashboard() {
+            if (userData.weight) {
+                document.getElementById('dashWeight').textContent = userData.weight;
+                document.getElementById('metricWeight').textContent = userData.weight;
+            }
+            if (userData.goalWeight) {
+                document.getElementById('dashGoal').textContent = userData.goalWeight;
+                document.getElementById('metricGoal').textContent = userData.goalWeight;
+                
+                const toGo = userData.weight - userData.goalWeight;
+                document.getElementById('dashToGo').textContent = toGo + ' lbs to go';
+            }
+            if (userData.bmi) {
+                document.getElementById('dashBMI').textContent = userData.bmi;
+                document.getElementById('metricBMI').textContent = userData.bmi;
+                
+                let category = '';
+                if (userData.bmi < 18.5) category = 'Underweight';
+                else if (userData.bmi < 25) category = 'Healthy';
+                else if (userData.bmi < 30) category = 'Overweight';
+                else category = 'Obese';
+                
+                document.getElementById('dashBMICat').textContent = category;
+            }
+            if (userData.age) {
+                document.getElementById('dashAge').textContent = userData.age;
+            }
+            
+            updateProgress();
+        }
+
+        function updateProgress() {
+            if (userData.weight && userData.goalWeight) {
+                const totalToLose = userData.weight - userData.goalWeight;
+                const startWeight = userData.weightHistory.length > 0 ? Math.max(...userData.weightHistory.map(w => w.weight)) : userData.weight;
+                const currentLost = startWeight - userData.weight;
+                const progress = Math.max(0, Math.min(100, (currentLost / totalToLose) * 100)).toFixed(1);
+                document.getElementById('metricProgress').textContent = progress + '%';
+            }
+        }
+
+        function logWeight() {
+            const weight = parseFloat(document.getElementById('logWeight').value);
+            if (!weight) return;
+            
+            userData.weight = weight;
+            userData.weightHistory.push({
+                date: new Date().toISOString().split('T')[0],
+                weight: weight
+            });
+            
+            localStorage.setItem('nutrisync_profile', JSON.stringify(userData));
+            updateDashboard();
+            updateBodyCharts();
+            
+            document.getElementById('logWeight').value = '';
+            showToast('Weight logged: ' + weight + ' lbs', 'success');
+        }
+
+        function updateBodyCharts() {
+            if (!userData.weightHistory.length && !userData.weight) return;
+            
+            const ctx = document.getElementById('bodyChart').getContext('2d');
+            
+            // Prepare data
+            let labels = userData.weightHistory.map(w => w.date);
+            let weights = userData.weightHistory.map(w => w.weight);
+            
+            // Add current weight if not in history
+            if (userData.weight && (!weights.length || weights[weights.length - 1] !== userData.weight)) {
+                labels.push(new Date().toISOString().split('T')[0]);
+                weights.push(userData.weight);
+            }
+            
+            // Generate goal line
+            const goalLine = Array(weights.length).fill(userData.goalWeight || 0);
+            
+            if (bodyChartInstance) {
+                bodyChartInstance.destroy();
+            }
+            
+            bodyChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Weight (lbs)',
+                        data: weights,
+                        borderColor: '#0066FF',
+                        backgroundColor: 'rgba(0, 102, 255, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }, {
+                        label: 'Goal (lbs)',
+                        data: goalLine,
+                        borderColor: '#00D4AA',
+                        borderDash: [5, 5],
+                        fill: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { labels: { color: 'white' } }
+                    },
+                    scales: {
+                        y: {
+                            ticks: { color: 'rgba(255,255,255,0.7)' },
+                            grid: { color: 'rgba(255,255,255,0.1)' }
+                        },
+                        x: {
+                            ticks: { color: 'rgba(255,255,255,0.7)' },
+                            grid: { color: 'rgba(255,255,255,0.1)' }
+                        }
+                    }
+                }
+            });
+        }
+
         function showToast(message, type) {
             const toast = document.createElement('div');
             toast.style.cssText = `position: fixed; top: 20px; right: 20px; padding: 1rem 1.5rem; background: ${type === 'success' ? 'rgba(0, 212, 170, 0.9)' : 'rgba(255, 71, 87, 0.9)'}; color: white; border-radius: 10px; font-weight: 600; z-index: 10000; animation: slideIn 0.3s ease;`;
@@ -552,6 +867,22 @@
             document.body.appendChild(toast);
             setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 4000);
         }
+
+        // Load saved data on startup
+        window.addEventListener('load', () => {
+            const saved = localStorage.getItem('nutrisync_profile');
+            if (saved) {
+                userData = JSON.parse(saved);
+                updateDashboard();
+                
+                // Fill form
+                if (userData.weight) document.getElementById('currentWeight').value = userData.weight;
+                if (userData.goalWeight) document.getElementById('goalWeight').value = userData.goalWeight;
+                if (userData.height) document.getElementById('height').value = userData.height;
+                if (userData.age) document.getElementById('age').value = userData.age;
+                if (userData.gender) document.getElementById('gender').value = userData.gender;
+            }
+        });
 
         document.getElementById('upgradeModal').addEventListener('click', (e) => {
             if (e.target === e.currentTarget) closeModal();
