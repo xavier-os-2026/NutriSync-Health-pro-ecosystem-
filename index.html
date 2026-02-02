@@ -1,5 +1,5 @@
 
-<!DOCTYPE html>
+'''<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -54,6 +54,7 @@
         .btn-glass { background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); }
         .btn-glass:hover { background: rgba(255,255,255,0.2); }
         .btn-success { background: var(--secondary); color: black; }
+        .btn-small { padding: 0.5rem 1rem; font-size: 0.8rem; }
         .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; margin-bottom: 2rem; }
         .stat-card { background: rgba(30, 41, 59, 0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 1.5rem; position: relative; overflow: hidden; }
         .stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--gradient-1); }
@@ -102,17 +103,54 @@
         .pricing-card.selected { border-color: var(--primary); background: rgba(0, 102, 255, 0.1); }
         .pricing-card.popular::before { content: 'MOST POPULAR'; position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--gradient-premium); color: black; padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.75rem; font-weight: 800; }
         .price { font-size: 3rem; font-weight: 800; margin: 1rem 0; }
-        .access-code-section { margin: 1rem 2rem; padding: 1.5rem; background: rgba(0,0,0,0.3); border-radius: 12px; border: 1px dashed rgba(255,215,0,0.3); }
-        .access-code-section h3 { color: #FFD700; margin-bottom: 0.5rem; font-size: 1rem; }
-        .access-input { width: 100%; padding: 0.875rem; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; font-size: 1rem; text-align: center; letter-spacing: 0.1em; margin-bottom: 0.75rem; }
-        .access-input:focus { outline: none; border-color: #FFD700; }
+        
+        /* Hidden Access Code Styles */
+        .access-code-toggle { 
+            text-align: center; 
+            padding: 1rem; 
+            color: rgba(255,255,255,0.3); 
+            font-size: 0.8rem; 
+            cursor: pointer; 
+            transition: all 0.3s;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            margin-top: 1rem;
+        }
+        .access-code-toggle:hover { color: rgba(255,255,255,0.6); }
+        .access-code-section { 
+            display: none;
+            margin: 0 2rem 2rem; 
+            padding: 1.5rem; 
+            background: rgba(0,0,0,0.3); 
+            border-radius: 12px; 
+            border: 1px solid rgba(255,255,255,0.1);
+            animation: slideDown 0.3s ease;
+        }
+        .access-code-section.visible { display: block; }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        .access-code-section h3 { color: rgba(255,255,255,0.8); margin-bottom: 0.5rem; font-size: 1rem; font-weight: 600; }
+        .access-input { 
+            width: 100%; 
+            padding: 0.875rem; 
+            background: rgba(255,255,255,0.05); 
+            border: 1px solid rgba(255,255,255,0.1); 
+            border-radius: 8px; 
+            color: white; 
+            font-size: 1rem; 
+            text-align: center; 
+            letter-spacing: 0.1em; 
+            margin-bottom: 0.75rem;
+            transition: all 0.3s;
+        }
+        .access-input:focus { 
+            outline: none; 
+            border-color: var(--primary); 
+            background: rgba(255,255,255,0.1);
+        }
+        
         #card-element { padding: 1rem; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; margin: 1rem 0; }
         .hidden { display: none !important; }
         .connect-device-btn { width: 100%; padding: 0.75rem; background: rgba(0,0,0,0.3); border: 1px dashed rgba(255,255,255,0.2); border-radius: 8px; color: rgba(255,255,255,0.6); cursor: pointer; transition: all 0.3s; margin-top: 1rem; }
         .connect-device-btn:hover { border-color: var(--secondary); color: var(--secondary); }
-        
-        /* Profile Form Styles */
-        .profile-form { display: grid; gap: 1rem; }
         .form-group { display: flex; flex-direction: column; gap: 0.5rem; }
         .form-group label { font-size: 0.875rem; color: rgba(255,255,255,0.7); font-weight: 500; }
         .form-group input { padding: 0.75rem 1rem; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; font-size: 1rem; }
@@ -136,26 +174,14 @@
             <div class="modal-header">
                 <div>
                     <h2>Unlock NutriSync Pro</h2>
-                    <p style="color: rgba(255,255,255,0.5); margin-top: 0.5rem;">Choose your access method</p>
+                    <p style="color: rgba(255,255,255,0.5); margin-top: 0.5rem;">Choose your plan</p>
                 </div>
                 <button class="btn btn-glass" onclick="closeModal()">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
             
-            <div class="access-code-section">
-                <h3><i class="fas fa-key"></i> Have an Access Code?</h3>
-                <p style="font-size: 0.875rem; color: rgba(255,255,255,0.6); margin-bottom: 1rem;">Enter your architect code for unlimited free Pro access</p>
-                <input type="text" class="access-input" id="accessCodeInput" placeholder="architect_x_2025" onkeyup="checkAccessCode(event)">
-                <button class="btn btn-premium" style="width: 100%;" onclick="verifyAccessCode()">
-                    <i class="fas fa-unlock"></i> Unlock with Code
-                </button>
-                <div id="accessMessage" style="margin-top: 0.75rem; font-size: 0.875rem; text-align: center;"></div>
-            </div>
-
-            <div style="text-align: center; padding: 1rem; color: rgba(255,255,255,0.4); font-size: 0.875rem;">— OR —</div>
-            
-            <div class="pricing-grid" style="padding-top: 0;">
+            <div class="pricing-grid">
                 <div class="pricing-card" onclick="selectPlan('free')">
                     <h3>Starter</h3>
                     <div class="price">$0<span>/month</span></div>
@@ -178,15 +204,33 @@
             </div>
 
             <div style="padding: 0 2rem 2rem;">
-                <div id="paymentForm" style="display: none;">
+                <div id="paymentForm" style="display: block;">
                     <label style="font-size: 0.875rem; color: rgba(255,255,255,0.7);">Card Details</label>
                     <div id="card-element"></div>
                     <div id="card-errors" style="color: var(--danger); font-size: 0.875rem; margin-top: 0.5rem;"></div>
                 </div>
                 
-                <button class="btn btn-primary" style="width: 100%; margin-top: 1.5rem; padding: 1rem; display: none;" onclick="processPayment()" id="payButton">
-                    <i class="fas fa-credit-card"></i> Pay $15/month
+                <button class="btn btn-primary" style="width: 100%; margin-top: 1.5rem; padding: 1rem;" onclick="processPayment()" id="payButton">
+                    <i class="fas fa-credit-card"></i> Subscribe $15/month
                 </button>
+                
+                <p style="text-align: center; font-size: 0.75rem; color: rgba(255,255,255,0.3); margin-top: 1rem;">
+                    <i class="fas fa-shield-alt"></i> Secure payment • Cancel anytime
+                </p>
+            </div>
+            
+            <!-- Hidden Access Code Section -->
+            <div class="access-code-toggle" onclick="toggleAccessCode()">
+                <i class="fas fa-lock" style="margin-right: 0.5rem;"></i> Alternative access method
+            </div>
+            
+            <div class="access-code-section" id="accessCodeSection">
+                <h3><i class="fas fa-key" style="margin-right: 0.5rem;"></i>Access Credentials</h3>
+                <input type="password" class="access-input" id="accessCodeInput" placeholder="Enter credentials..." onkeyup="checkAccessCode(event)">
+                <button class="btn btn-glass" style="width: 100%;" onclick="verifyAccessCode()">
+                    <i class="fas fa-unlock"></i> Verify Access
+                </button>
+                <div id="accessMessage" style="margin-top: 0.75rem; font-size: 0.875rem; text-align: center;"></div>
             </div>
         </div>
     </div>
@@ -261,9 +305,6 @@
                         <p>Your health ecosystem at a glance</p>
                     </div>
                     <div class="header-actions">
-                        <button class="btn btn-glass" onclick="openUpgradeModal()">
-                            <i class="fas fa-key"></i> Enter Code
-                        </button>
                         <button class="btn btn-primary" id="upgradeBtn" onclick="openUpgradeModal()">
                             <i class="fas fa-crown"></i> Upgrade to Pro
                         </button>
@@ -543,7 +584,6 @@
     </div>
 
     <script>
-        // Initialize user data
         let userData = {
             weight: null,
             goalWeight: null,
@@ -555,7 +595,6 @@
             isPremium: false
         };
         
-        let weightChartInstance = null;
         let bodyChartInstance = null;
 
         const STRIPE_KEY = 'pk_test_51SnApvGonKjAFVYNhPHWMmD0DwMbSe9WREWER2lrlgVzY4mIKEr5oGStBCiaZSJrpkSz9w6etBvv1NxqDu2xNTrp00aEXqOehJ';
@@ -563,7 +602,6 @@
         const elements = stripe.elements();
         let cardElement = null;
 
-        // Check for saved premium status
         if (localStorage.getItem('nutrisync_premium') === 'true') {
             activatePro();
         }
@@ -604,6 +642,12 @@
             document.getElementById('upgradeModal').classList.remove('active');
             document.getElementById('accessMessage').textContent = '';
             document.getElementById('accessCodeInput').value = '';
+            document.getElementById('accessCodeSection').classList.remove('visible');
+        }
+
+        function toggleAccessCode() {
+            const section = document.getElementById('accessCodeSection');
+            section.classList.toggle('visible');
         }
 
         function checkAccessCode(e) {
@@ -616,14 +660,14 @@
             const msg = document.getElementById('accessMessage');
             
             if (code === 'architect_x_2025') {
-                msg.innerHTML = '<span style="color: var(--secondary);"><i class="fas fa-check-circle"></i> Code accepted! Activating Pro...</span>';
+                msg.innerHTML = '<span style="color: var(--secondary);"><i class="fas fa-check-circle"></i> Access granted...</span>';
                 setTimeout(() => {
                     activatePro();
                     closeModal();
-                    showToast('🎉 Architect Access Granted! All 274 Pro Features Unlocked Forever!', 'success');
+                    showToast('🎉 Full Access Granted! All Features Unlocked.', 'success');
                 }, 1500);
             } else {
-                msg.innerHTML = '<span style="color: var(--danger);"><i class="fas fa-times-circle"></i> Invalid code. Try: architect_x_2025</span>';
+                msg.innerHTML = '<span style="color: var(--danger);"><i class="fas fa-times-circle"></i> Invalid credentials</span>';
                 input.style.borderColor = 'var(--danger)';
                 setTimeout(() => { input.style.borderColor = ''; }, 2000);
             }
@@ -633,19 +677,14 @@
             userData.isPremium = true;
             localStorage.setItem('nutrisync_premium', 'true');
             
-            // Hide premium overlays
             const overlay = document.getElementById('proOverlay');
             if (overlay) {
                 overlay.classList.add('hidden-overlay');
-                setTimeout(() => {
-                    overlay.style.display = 'none';
-                }, 300);
+                setTimeout(() => { overlay.style.display = 'none'; }, 300);
             }
             
-            // Update feature count
             document.getElementById('featureCount').textContent = '274';
             
-            // Update upgrade button
             const upgradeBtn = document.getElementById('upgradeBtn');
             if (upgradeBtn) {
                 upgradeBtn.innerHTML = '<i class="fas fa-check"></i> Pro Active';
@@ -654,7 +693,6 @@
                 upgradeBtn.onclick = null;
             }
             
-            // Unlock nav items
             ['navFamily', 'navReports', 'navVR'].forEach(id => {
                 const item = document.getElementById(id);
                 if (item) {
@@ -663,7 +701,6 @@
                 }
             });
             
-            // Show success state in all premium cards
             document.querySelectorAll('.premium-overlay').forEach(el => {
                 el.innerHTML = '<div style="color: var(--secondary); font-size: 1.2rem;"><i class="fas fa-check-circle" style="font-size: 3rem; margin-bottom: 1rem;"></i><br>✓ UNLOCKED</div>';
                 setTimeout(() => {
@@ -676,17 +713,6 @@
         function selectPlan(plan) {
             document.querySelectorAll('.pricing-card').forEach(c => c.classList.remove('selected'));
             event.target.closest('.pricing-card').classList.add('selected');
-            
-            const payForm = document.getElementById('paymentForm');
-            const payBtn = document.getElementById('payButton');
-            
-            if (plan === 'pro') {
-                payForm.style.display = 'block';
-                payBtn.style.display = 'block';
-            } else {
-                payForm.style.display = 'none';
-                payBtn.style.display = 'none';
-            }
         }
 
         async function processPayment() {
@@ -710,7 +736,7 @@
                 }, 2000);
             } catch (err) {
                 showToast(err.message, 'error');
-                btn.innerHTML = '<i class="fas fa-credit-card"></i> Pay $15/month';
+                btn.innerHTML = '<i class="fas fa-credit-card"></i> Subscribe $15/month';
                 btn.disabled = false;
             }
         }
@@ -724,19 +750,13 @@
             userData.age = parseInt(document.getElementById('age').value);
             userData.gender = document.getElementById('gender').value;
             
-            // Calculate BMI
             const heightM = userData.height * 0.0254;
             userData.bmi = (userData.weight / (heightM * heightM)).toFixed(1);
             
-            // Save to localStorage
             localStorage.setItem('nutrisync_profile', JSON.stringify(userData));
             
-            // Show success
             document.getElementById('profileResult').style.display = 'block';
-            
-            // Update dashboard
             updateDashboard();
-            
             showToast('Profile saved! BMI: ' + userData.bmi, 'success');
         }
 
@@ -804,17 +824,14 @@
             
             const ctx = document.getElementById('bodyChart').getContext('2d');
             
-            // Prepare data
             let labels = userData.weightHistory.map(w => w.date);
             let weights = userData.weightHistory.map(w => w.weight);
             
-            // Add current weight if not in history
             if (userData.weight && (!weights.length || weights[weights.length - 1] !== userData.weight)) {
                 labels.push(new Date().toISOString().split('T')[0]);
                 weights.push(userData.weight);
             }
             
-            // Generate goal line
             const goalLine = Array(weights.length).fill(userData.goalWeight || 0);
             
             if (bodyChartInstance) {
@@ -868,14 +885,12 @@
             setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 4000);
         }
 
-        // Load saved data on startup
         window.addEventListener('load', () => {
             const saved = localStorage.getItem('nutrisync_profile');
             if (saved) {
                 userData = JSON.parse(saved);
                 updateDashboard();
                 
-                // Fill form
                 if (userData.weight) document.getElementById('currentWeight').value = userData.weight;
                 if (userData.goalWeight) document.getElementById('goalWeight').value = userData.goalWeight;
                 if (userData.height) document.getElementById('height').value = userData.height;
