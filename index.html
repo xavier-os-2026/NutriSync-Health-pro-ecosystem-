@@ -559,27 +559,3 @@
     </script>
 </body>
 </html>'''
-
-# Save the no-mock-data version
-with open('/mnt/kimi/output/nutrisync_no_mock.html', 'w', encoding='utf-8') as f:
-    f.write(no_mock_html)
-
-print("=" * 60)
-print("✅ NO MOCK DATA VERSION CREATED!")
-print("=" * 60)
-print("📁 File: /mnt/kimi/output/nutrisync_no_mock.html")
-print("\n🧹 REMOVED:")
-print("   • Fake stats (1,847 energy, etc.)")
-print("   • Sample food items (Salmon, Smoothie)")
-print("   • Dummy workout data")
-print("   • Mock device connections")
-print("   • Fake '12,847 data points'")
-print("   • Placeholder chat messages")
-print("\n✨ REPLACED WITH:")
-print("   • '--' for empty stats")
-print("   • 'Connect device to sync' messages")
-print("   • Empty states with CTAs")
-print("   • 'No Food Logged Today' prompts")
-print("   • 'Connect First Device' buttons")
-print("   • Clean slate ready for real data")
-print("=" * 60)
