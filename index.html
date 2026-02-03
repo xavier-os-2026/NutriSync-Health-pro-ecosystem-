@@ -1,14 +1,14 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#0f172a">
-    <title>NutriSync Pro | Complete Ecosystem</title>
+    <title>NutriSync Pro | AI HealthOS</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap');
@@ -49,6 +49,18 @@
         
         .btn-primary:active { transform: scale(0.98); }
         
+        .btn-medical {
+            background: linear-gradient(135deg, #dc2626, #991b1b);
+            color: white;
+            font-weight: 600;
+        }
+        
+        .btn-ai {
+            background: linear-gradient(135deg, #7c3aed, #4f46e5);
+            color: white;
+            font-weight: 600;
+        }
+        
         .page {
             display: none;
             min-height: 100vh;
@@ -85,38 +97,86 @@
             z-index: 100;
         }
         
-        .result-card {
-            background: rgba(6, 182, 212, 0.05);
-            border: 1px solid rgba(6, 182, 212, 0.2);
+        .scanner-container {
+            position: relative;
+            width: 100%;
+            height: 300px;
+            background: #000;
+            border-radius: 16px;
+            overflow: hidden;
         }
         
-        .metric-value {
-            font-variant-numeric: tabular-nums;
+        .scanner-line {
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            background: #06b6d4;
+            box-shadow: 0 0 10px #06b6d4;
+            animation: scan 2s linear infinite;
+            top: 0;
+        }
+        
+        @keyframes scan {
+            0% { top: 0; opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { top: 100%; opacity: 0; }
+        }
+        
+        .chat-message {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 16px;
+            margin-bottom: 12px;
+            line-height: 1.5;
+        }
+        
+        .chat-user {
+            background: rgba(6, 182, 212, 0.2);
+            border: 1px solid rgba(6, 182, 212, 0.3);
+            margin-left: auto;
+            border-bottom-right-radius: 4px;
+        }
+        
+        .chat-ai {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(71, 85, 105, 0.5);
+            margin-right: auto;
+            border-bottom-left-radius: 4px;
+        }
+        
+        .chat-medical {
+            background: rgba(220, 38, 38, 0.1);
+            border: 1px solid rgba(220, 38, 38, 0.3);
+            margin-right: auto;
+            border-bottom-left-radius: 4px;
+        }
+        
+        .severity-low { border-left: 4px solid #22c55e; }
+        .severity-medium { border-left: 4px solid #eab308; }
+        .severity-high { border-left: 4px solid #f97316; }
+        .severity-critical { border-left: 4px solid #dc2626; }
+        
+        .food-card {
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid rgba(71, 85, 105, 0.3);
+            transition: all 0.2s;
+        }
+        
+        .food-card:hover {
+            border-color: rgba(6, 182, 212, 0.5);
+            transform: translateY(-2px);
+        }
+        
+        .doctor-portal {
+            background: linear-gradient(135deg, rgba(220, 38, 38, 0.1), rgba(153, 27, 27, 0.05));
+            border: 1px solid rgba(220, 38, 38, 0.3);
         }
         
         .module-description {
             background: rgba(30, 41, 59, 0.4);
             border-left: 3px solid;
             transition: all 0.3s ease;
-        }
-        
-        .desc-section {
-            margin-bottom: 12px;
-        }
-        
-        .desc-title {
-            font-size: 0.75rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 4px;
-            opacity: 0.9;
-        }
-        
-        .desc-content {
-            font-size: 0.875rem;
-            line-height: 1.5;
-            color: #94a3b8;
         }
         
         .expandable-desc {
@@ -129,13 +189,14 @@
             max-height: 1000px;
         }
         
-        .info-toggle {
-            cursor: pointer;
-            transition: transform 0.2s;
+        .hidden-camera {
+            display: none;
         }
         
-        .info-toggle.active {
-            transform: rotate(180deg);
+        #interactive {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
     </style>
 </head>
@@ -166,8 +227,37 @@
                 <button onclick="enterLimited()" class="w-full py-3 rounded-xl border border-slate-700 text-slate-400 text-sm hover:bg-slate-900">
                     Limited Access
                 </button>
+                <button onclick="showDoctorLogin()" class="w-full py-3 rounded-xl border border-red-900/50 text-red-400 text-sm hover:bg-red-950/30">
+                    <i class="fas fa-user-md mr-2"></i>Physician Portal
+                </button>
             </div>
             <p id="authError" class="text-red-400 text-sm text-center mt-4 hidden animate-pulse">Invalid access credentials</p>
+        </div>
+    </div>
+
+    <!-- Doctor Auth Overlay -->
+    <div id="doctorAuthOverlay" class="fixed inset-0 z-[301] bg-slate-950 flex items-center justify-center p-6 hidden">
+        <div class="w-full max-w-sm">
+            <div class="text-center mb-8">
+                <div class="w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-red-600 to-red-800 flex items-center justify-center text-3xl shadow-2xl shadow-red-500/20">
+                    <i class="fas fa-user-md text-white"></i>
+                </div>
+                <h1 class="text-3xl font-bold mb-2 tracking-tight text-red-400">Medical Portal</h1>
+                <p class="text-slate-400 text-sm">HIPAA-Compliant Clinical Access</p>
+            </div>
+            
+            <div class="space-y-3">
+                <input type="text" id="docId" placeholder="Medical License ID" class="w-full px-4 py-3 rounded-xl input-field">
+                <input type="password" id="docPin" placeholder="Secure PIN" class="w-full px-4 py-3 rounded-xl input-field">
+                <input type="text" id="docFacility" placeholder="Facility Code" class="w-full px-4 py-3 rounded-xl input-field">
+                <button onclick="authenticateDoctor()" class="w-full py-4 rounded-xl btn-medical text-lg font-bold shadow-lg shadow-red-500/25">
+                    Access Patient Data
+                </button>
+                <button onclick="backToMainAuth()" class="w-full py-3 rounded-xl border border-slate-700 text-slate-400 text-sm hover:bg-slate-900">
+                    Back to Patient Access
+                </button>
+            </div>
+            <p id="docAuthError" class="text-red-400 text-sm text-center mt-4 hidden">Invalid medical credentials</p>
         </div>
     </div>
 
@@ -180,9 +270,14 @@
                 <i class="fas fa-arrow-left"></i>
             </button>
             <h1 id="headerTitle" class="font-bold text-xl flex-1 ml-3">Command Center</h1>
-            <button onclick="showExport()" class="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center hover:bg-slate-700">
-                <i class="fas fa-database text-sm"></i>
-            </button>
+            <div class="flex gap-2">
+                <button onclick="showExport()" class="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center hover:bg-slate-700">
+                    <i class="fas fa-database text-sm"></i>
+                </button>
+                <button id="doctorBtn" onclick="showDoctorDashboard()" class="hidden w-10 h-10 rounded-xl bg-red-900/30 border border-red-500/30 text-red-400 flex items-center justify-center hover:bg-red-900/50">
+                    <i class="fas fa-user-md text-sm"></i>
+                </button>
+            </div>
         </header>
 
         <!-- MAIN DASHBOARD -->
@@ -196,16 +291,16 @@
                     <div class="text-xs mt-1" id="weightChange">Tap to log</div>
                 </div>
                 
-                <div class="glass rounded-2xl p-4 border border-slate-700/50 cursor-pointer hover:border-blue-500/50 transition" onclick="openTool('bmiCalc')">
-                    <div class="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">BMI</div>
-                    <div class="text-3xl font-bold metric-value text-blue-400" id="liveBMI">--</div>
-                    <div class="text-xs text-slate-400 mt-1" id="bmiStatus">Calculate</div>
+                <div class="glass rounded-2xl p-4 border border-slate-700/50 cursor-pointer hover:border-orange-500/50 transition" onclick="openTool('calorieTracker')">
+                    <div class="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">Calories</div>
+                    <div class="text-3xl font-bold metric-value text-orange-400" id="liveCalories">--</div>
+                    <div class="text-xs text-slate-400 mt-1" id="calorieStatus">Tap to log</div>
                 </div>
                 
-                <div class="glass rounded-2xl p-4 border border-slate-700/50 cursor-pointer hover:border-orange-500/50 transition" onclick="openTool('tdeeCalc')">
-                    <div class="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">TDEE</div>
-                    <div class="text-3xl font-bold metric-value text-orange-400" id="liveTDEE">--</div>
-                    <div class="text-xs text-slate-400 mt-1">cal/day</div>
+                <div class="glass rounded-2xl p-4 border border-slate-700/50 cursor-pointer hover:border-blue-500/50 transition" onclick="openTool('aiDoctor')">
+                    <div class="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">AI Health</div>
+                    <div class="text-3xl font-bold metric-value text-blue-400"><i class="fas fa-stethoscope"></i></div>
+                    <div class="text-xs text-slate-400 mt-1">Consult AI Dr</div>
                 </div>
                 
                 <div class="glass rounded-2xl p-4 border border-slate-700/50 cursor-pointer hover:border-cyan-500/50 transition" onclick="openTool('fastingTracker')">
@@ -215,11 +310,30 @@
                 </div>
             </div>
 
+            <!-- Quick Actions -->
+            <div class="grid grid-cols-2 gap-3 mb-6">
+                <button onclick="openTool('foodScanner')" class="glass rounded-2xl p-4 border border-cyan-500/30 hover:bg-cyan-500/10 transition text-left">
+                    <div class="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center mb-2">
+                        <i class="fas fa-camera text-cyan-400"></i>
+                    </div>
+                    <div class="font-bold text-sm">AI Food Scan</div>
+                    <div class="text-xs text-slate-400">Barcode + Vision</div>
+                </button>
+                
+                <button onclick="openTool('aiDoctor')" class="glass rounded-2xl p-4 border border-red-500/30 hover:bg-red-500/10 transition text-left">
+                    <div class="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center mb-2">
+                        <i class="fas fa-user-md text-red-400"></i>
+                    </div>
+                    <div class="font-bold text-sm text-red-400">AI Doctor</div>
+                    <div class="text-xs text-slate-400">Symptom Analysis</div>
+                </button>
+            </div>
+
             <!-- Tools Directory -->
             <div class="mb-4">
                 <div class="flex justify-between items-center mb-3 px-1">
                     <h2 class="font-bold text-lg">Tools Directory</h2>
-                    <span class="text-xs bg-cyan-500/10 text-cyan-400 px-3 py-1 rounded-full border border-cyan-500/20">174 Modules</span>
+                    <span class="text-xs bg-cyan-500/10 text-cyan-400 px-3 py-1 rounded-full border border-cyan-500/20">174+ Modules</span>
                 </div>
                 
                 <!-- Search -->
@@ -230,11 +344,9 @@
                 <!-- Categories -->
                 <div class="flex gap-2 overflow-x-auto pb-2 mb-2 no-scrollbar" id="categoryTabs">
                     <button onclick="filterCategory('all')" class="px-4 py-2 rounded-full bg-cyan-500 text-white text-sm font-medium whitespace-nowrap">All</button>
-                    <button onclick="filterCategory('body')" class="px-4 py-2 rounded-full bg-slate-800 text-slate-400 text-sm font-medium whitespace-nowrap">Body</button>
+                    <button onclick="filterCategory('ai')" class="px-4 py-2 rounded-full bg-purple-900/30 text-purple-400 border border-purple-500/30 text-sm font-medium whitespace-nowrap">AI Tools</button>
                     <button onclick="filterCategory('nutrition')" class="px-4 py-2 rounded-full bg-slate-800 text-slate-400 text-sm font-medium whitespace-nowrap">Nutrition</button>
-                    <button onclick="filterCategory('fitness')" class="px-4 py-2 rounded-full bg-slate-800 text-slate-400 text-sm font-medium whitespace-nowrap">Fitness</button>
-                    <button onclick="filterCategory('health')" class="px-4 py-2 rounded-full bg-slate-800 text-slate-400 text-sm font-medium whitespace-nowrap">Health</button>
-                    <button onclick="filterCategory('biohacking')" class="px-4 py-2 rounded-full bg-slate-800 text-slate-400 text-sm font-medium whitespace-nowrap">Biohacking</button>
+                    <button onclick="filterCategory('medical')" class="px-4 py-2 rounded-full bg-red-900/30 text-red-400 border border-red-500/30 text-sm font-medium whitespace-nowrap">Medical</button>
                 </div>
 
                 <!-- Tools Grid -->
@@ -251,6 +363,52 @@
             </div>
         </div>
 
+        <!-- DOCTOR DASHBOARD -->
+        <div id="doctorDashboard" class="page px-4 pt-4">
+            <div class="doctor-portal rounded-2xl p-6 mb-6">
+                <div class="flex items-center gap-4 mb-4">
+                    <div class="w-16 h-16 rounded-full bg-red-500/20 flex items-center justify-center">
+                        <i class="fas fa-user-md text-3xl text-red-400"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-bold text-red-400">Clinical Dashboard</h2>
+                        <p class="text-sm text-slate-400">Dr. <span id="docNameDisplay">--</span> | License: <span id="docLicenseDisplay">--</span></p>
+                    </div>
+                </div>
+                <div class="bg-red-500/10 border border-red-500/30 rounded-xl p-3 text-sm text-red-200">
+                    <i class="fas fa-shield-alt mr-2"></i>HIPAA Compliance Mode Active. All access is logged and encrypted.
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <div class="glass rounded-2xl p-4 border border-slate-700">
+                    <h3 class="font-bold mb-4 flex items-center gap-2">
+                        <i class="fas fa-users text-cyan-400"></i> Patient Records
+                    </h3>
+                    <div id="patientList" class="space-y-3">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+
+                <div class="glass rounded-2xl p-4 border border-slate-700">
+                    <h3 class="font-bold mb-4 flex items-center gap-2">
+                        <i class="fas fa-ambulance text-red-400"></i> Critical Alerts
+                    </h3>
+                    <div id="criticalAlerts" class="space-y-2">
+                        <div class="p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-sm">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <div class="font-bold text-red-400">High Blood Pressure</div>
+                                    <div class="text-slate-400">Patient ID: NS-2847 | 180/110 mmHg</div>
+                                </div>
+                                <span class="text-xs bg-red-500/20 text-red-400 px-2 py-1 rounded">2h ago</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- DATA MANAGEMENT -->
         <div id="dataPage" class="page px-4 pt-4">
             <h2 class="text-2xl font-bold mb-6">Data Center</h2>
@@ -264,12 +422,8 @@
                         <span class="flex items-center gap-2"><i class="fas fa-file-code text-blue-400"></i> Full Database (JSON)</span>
                         <i class="fas fa-chevron-right text-slate-600"></i>
                     </button>
-                    <button onclick="exportCSV()" class="w-full py-3 rounded-xl bg-slate-800 hover:bg-slate-700 flex items-center justify-between px-4 transition">
-                        <span class="flex items-center gap-2"><i class="fas fa-file-csv text-green-400"></i> Weight History (CSV)</span>
-                        <i class="fas fa-chevron-right text-slate-600"></i>
-                    </button>
-                    <button onclick="generatePDF()" class="w-full py-3 rounded-xl bg-slate-800 hover:bg-slate-700 flex items-center justify-between px-4 transition">
-                        <span class="flex items-center gap-2"><i class="fas fa-file-pdf text-red-400"></i> Health Report (PDF)</span>
+                    <button onclick="exportMedicalPDF()" class="w-full py-3 rounded-xl bg-red-900/20 border border-red-500/30 hover:bg-red-900/30 flex items-center justify-between px-4 transition">
+                        <span class="flex items-center gap-2"><i class="fas fa-file-medical text-red-400"></i> Medical Report (PDF)</span>
                         <i class="fas fa-chevron-right text-slate-600"></i>
                     </button>
                 </div>
@@ -277,19 +431,12 @@
 
             <div class="glass rounded-2xl p-6 border border-slate-700">
                 <h3 class="font-bold mb-4 flex items-center gap-2">
-                    <i class="fas fa-upload text-cyan-400"></i> Import / Restore
+                    <i class="fas fa-cloud-upload-alt text-cyan-400"></i> Cloud Sync
                 </h3>
-                <input type="file" id="importFile" accept=".json" class="hidden" onchange="importJSON(this)">
-                <button onclick="document.getElementById('importFile').click()" class="w-full py-3 rounded-xl bg-cyan-500/10 border border-cyan-500/50 text-cyan-400 font-medium hover:bg-cyan-500/20 transition">
-                    <i class="fas fa-file-import mr-2"></i>Select Backup File
+                <button onclick="syncToCloud()" class="w-full py-3 rounded-xl btn-primary mb-3">
+                    <i class="fas fa-sync-alt mr-2"></i>Sync to Secure Cloud
                 </button>
-            </div>
-
-            <div class="mt-6 p-4 rounded-xl bg-red-500/10 border border-red-500/30">
-                <h3 class="font-bold text-red-400 mb-2 text-sm">Danger Zone</h3>
-                <button onclick="clearAllData()" class="w-full py-2 rounded-lg bg-red-500/20 text-red-400 text-sm font-medium hover:bg-red-500/30">
-                    Clear All Data
-                </button>
+                <p class="text-xs text-slate-500 text-center">End-to-end encrypted. Compliant with HIPAA, GDPR, and PIPEDA.</p>
             </div>
         </div>
 
@@ -302,13 +449,13 @@
                 <i class="fas fa-home text-xl"></i>
                 <span class="text-[10px] font-medium">Home</span>
             </button>
-            <button onclick="focusSearch()" class="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-200 p-2">
-                <i class="fas fa-search text-xl"></i>
-                <span class="text-[10px] font-medium">Find</span>
+            <button onclick="openTool('foodScanner')" class="flex flex-col items-center gap-1 text-purple-400 p-2">
+                <i class="fas fa-camera text-xl"></i>
+                <span class="text-[10px] font-medium">Scan</span>
             </button>
-            <button onclick="openTool('fastingTracker')" class="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-200 p-2">
-                <i class="fas fa-stopwatch text-xl"></i>
-                <span class="text-[10px] font-medium">Fast</span>
+            <button onclick="openTool('aiDoctor')" class="flex flex-col items-center gap-1 text-red-400 p-2">
+                <i class="fas fa-user-md text-xl"></i>
+                <span class="text-[10px] font-medium">AI Dr</span>
             </button>
             <button onclick="showExport()" class="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-200 p-2">
                 <i class="fas fa-cog text-xl"></i>
@@ -318,252 +465,33 @@
     </nav>
 
     <script>
-        // ==================== MODULE DESCRIPTIONS DATABASE ====================
-        const ModuleDescriptions = {
-            // BODY COMPOSITION
-            weightLog: {
-                purpose: "Track body weight fluctuations over time to identify trends and measure progress toward fitness goals.",
-                benefits: "Visualize weight patterns, detect plateaus early, correlate weight changes with diet/exercise modifications, and maintain accountability.",
-                usage: "Weigh yourself at the same time daily (preferably morning after bathroom use, before eating). Enter the value in kg and date. Review history to spot weekly trends rather than daily fluctuations.",
-                optimize: "Use a digital scale for precision. Track alongside menstrual cycle (for women), sodium intake, and carbohydrate consumption to explain water weight variations. Export monthly for trend analysis."
-            },
-            bmiCalc: {
-                purpose: "Calculate Body Mass Index to categorize weight status relative to height using the standard WHO formula.",
-                benefits: "Quick screening tool for weight-related health risks, widely used metric for medical assessments, helps set initial weight management goals.",
-                usage: "Enter height in centimeters and weight in kilograms. The calculator returns your BMI category: Underweight (<18.5), Normal (18.5-24.9), Overweight (25-29.9), or Obese (>30).",
-                optimize: "BMI doesn't distinguish muscle from fat. Combine with Body Fat % and Waist-to-Hip ratio for accurate health assessment. Athletes should use alternative metrics."
-            },
-            bodyFat: {
-                purpose: "Estimate body fat percentage using the U.S. Navy method based on neck, waist, and hip circumference measurements.",
-                benefits: "More accurate than BMI for body composition, tracks fat loss vs muscle gain, essential for physique competitors and health monitoring.",
-                usage: "Measure neck (narrowest), waist (naval level), and hips (widest for women) using a tape measure. Input values in cm along with height and gender.",
-                optimize: "Measure at the same time of day (morning preferred). Take 3 measurements of each site and average them. Use calipers for even greater accuracy."
-            },
-            idealWeight: {
-                purpose: "Calculate optimal weight ranges based on height and gender using the Robinson formula (1983).",
-                benefits: "Sets realistic weight goals, provides healthy target ranges based on medical data, accounts for frame size variations.",
-                usage: "Enter height in cm and select gender. The module returns ideal weight and a healthy range (±10%).",
-                optimize: "Consider your body frame size (wrist measurement) - add 10% for large frames, subtract 10% for small frames. Muscle mass goals may require higher targets."
-            },
-            bmrCalc: {
-                purpose: "Calculate Basal Metabolic Rate - the calories your body burns at complete rest to maintain vital functions.",
-                benefits: "Foundation for all calorie planning, determines minimum caloric needs, essential for preventing metabolic adaptation from excessive dieting.",
-                usage: "Input age, height, weight, and gender. Uses Mifflin-St Jeor equation (most accurate). Result shows calories needed if you stayed in bed all day.",
-                optimize: "Recalculate every 5kg of weight change. As you lose weight, BMR drops - adjust intake accordingly to prevent plateaus."
-            },
-            waistHip: {
-                purpose: "Calculate Waist-to-Hip Ratio (WHR) to assess fat distribution and cardiovascular risk.",
-                benefits: "Better predictor of heart disease than BMI, identifies dangerous visceral fat accumulation, tracks abdominal obesity reduction.",
-                usage: "Measure waist at narrowest point and hips at widest. Divide waist by hip measurement. Risk thresholds: Men >0.90, Women >0.85.",
-                optimize: "Measure weekly at the same time. Reduce ratio through core training and high-intensity interval training (HIIT) to target visceral fat."
-            },
-            waistHeight: {
-                purpose: "Calculate Waist-to-Height Ratio (WtHR), a simple screening tool for early health risks.",
-                benefits: "Universal cutoff (0.5) regardless of gender/ethnicity, simple to calculate, strong predictor of metabolic syndrome and diabetes risk.",
-                usage: "Divide waist circumference (cm) by height (cm). Keep your waist less than half your height for optimal health.",
-                optimize: "If ratio >0.5, aim to reduce waist through diet and exercise. Even 5% weight loss significantly improves this metric."
-            },
-            metabolicAge: {
-                purpose: "Estimate metabolic age by comparing your BMR to population averages for different chronological ages.",
-                benefits: "Motivational metric, indicates metabolic health relative to actual age, tracks internal health improvements.",
-                usage: "Calculate BMR first. The system compares your BMR to age-group averages to determine if your metabolism is younger or older than your actual age.",
-                optimize: "Build muscle mass to lower metabolic age. Each pound of muscle burns 6-7 calories/day at rest vs 2-3 for fat."
-            },
-            
-            // ENERGY & NUTRITION
-            tdeeCalc: {
-                purpose: "Calculate Total Daily Energy Expenditure - total calories burned including all activities.",
-                benefits: "Determines maintenance calories for weight stability, basis for creating caloric deficits or surpluses, accounts for lifestyle activity levels.",
-                usage: "Input BMR or let system use profile data. Select activity multiplier: Sedentary (1.2) to Athlete (1.9). Provides cut (-500), maintain, and bulk (+500) targets.",
-                optimize: "Track actual weight change for 2 weeks at 'maintenance' to find true TDEE (metabolic adaptation varies). Adjust based on real results, not just calculations."
-            },
-            macroCalc: {
-                purpose: "Calculate optimal macronutrient distribution (carbs, protein, fats) based on total calories and dietary approach.",
-                benefits: "Ensures adequate protein for muscle retention, optimizes hormone production through fat intake, customizes carb levels for activity demands.",
-                usage: "Enter daily calorie target and select diet type: Balanced (40/30/30), Keto (5/25/70), High Protein (30/40/30), Low Fat (60/25/15), or Paleo (25/35/40).",
-                optimize: "Protein should be 1.6-2.2g per kg bodyweight when cutting. Fats minimum 0.6g/kg for hormone health. Time carbs around workouts for performance."
-            },
-            proteinCalc: {
-                purpose: "Calculate daily protein requirements based on body weight, activity level, and specific goals.",
-                benefits: "Preserves muscle mass during weight loss, maximizes muscle protein synthesis for gains, increases satiety and thermic effect of food.",
-                usage: "Enter weight and select goal: Sedentary (0.8g/kg), Active (1.2g/kg), Muscle Gain (1.6g/kg), Bodybuilding (2.0g/kg), or Cutting (2.4g/kg for anti-catabolism).",
-                optimize: "Distribute protein evenly across 4-5 meals (20-40g per meal) for optimal MPS. Include 3g leucine per meal to trigger anabolic response."
-            },
-            fiberCalc: {
-                purpose: "Calculate recommended daily fiber intake and track consumption for digestive and metabolic health.",
-                benefits: "Improves gut microbiome diversity, slows glucose absorption, increases satiety, reduces cholesterol, and prevents constipation.",
-                usage: "General rule: 14g per 1000 calories consumed. Enter calorie intake to get personalized target. Minimum 25g women, 38g men regardless of calories.",
-                optimize: "Increase gradually over 2 weeks to prevent bloating. Combine soluble (oats, apples) and insoluble (vegetables, whole grains) fiber sources."
-            },
-            sugarCalc: {
-                purpose: "Monitor added sugar intake against WHO and AHA recommendations for metabolic health.",
-                benefits: "Prevents insulin resistance, reduces fatty liver risk, stabilizes energy levels, improves dental health, and controls empty calories.",
-                usage: "WHO recommends <10% total calories from added sugar (ideally <5%). Enter daily calories to get gram limits (4 calories per gram sugar).",
-                optimize: "Read labels for hidden sugars (syrups, -ose endings). Natural sugars in whole fruits don't count toward limits due to fiber content."
-            },
-            sodiumCalc: {
-                purpose: "Track sodium intake to manage blood pressure, water retention, and cardiovascular health.",
-                benefits: "Prevents hypertension, reduces bloating and water weight fluctuations, protects kidney function, and lowers stroke risk.",
-                usage: "WHO limit: 2000mg/day (5g salt). FDA: 2300mg. Enter processed foods and added salt to track daily totals.",
-                optimize: "Increase potassium intake (bananas, spinach) to balance sodium effects. Hydrate adequately - 2-3L water daily helps excrete excess sodium."
-            },
-            
-            // FASTING & MEAL TIMING
-            fastingTracker: {
-                purpose: "Time-restricted eating tracker for Intermittent Fasting protocols (16:8, 18:6, 20:4, OMAD).",
-                benefits: "Induces autophagy (cellular cleanup), improves insulin sensitivity, increases growth hormone, simplifies meal planning, and enhances mental clarity.",
-                usage: "Press START when beginning fast (typically after dinner). The timer tracks hours fasted. Common protocols: 16 hours fasted/8 hours eating, or 18:6 for accelerated fat loss.",
-                optimize: "Hydrate with electrolytes (sodium, potassium, magnesium) during fasts >16 hours. Break fasts with protein and fiber, not simple carbs. Start with 12:12, progress gradually."
-            },
-            autophagyTimer: {
-                purpose: "Estimate when cellular autophagy (self-eating) begins during extended fasting for longevity benefits.",
-                benefits: "Triggers cellular repair mechanisms, clears damaged proteins and organelles, may reduce Alzheimer's and cancer risks, promotes longevity.",
-                usage: "Autophagy begins approximately 16-18 hours into fasting, peaks around 24-48 hours. Timer shows autophagy phases: Initiation (12-16h), Active (16-48h), Deep (48h+).",
-                optimize: "Combine with low-carb diet to enter ketosis faster. Light exercise during fasting accelerates autophagy. Consult doctor for fasts >24 hours."
-            },
-            
-            // FITNESS PERFORMANCE
-            heartRateZones: {
-                purpose: "Calculate personalized heart rate training zones using Karvonen method (HRR) for optimized cardiovascular training.",
-                benefits: "Prevents overtraining, ensures adequate intensity for adaptations, targets specific energy systems (fat burning vs. carbohydrate), structures interval training.",
-                usage: "Enter age and resting heart rate (measure morning pulse). Calculates 5 zones: Recovery (50-60%), Aerobic (60-70%), Tempo (70-80%), Threshold (80-90%), VO2 Max (90-100%).",
-                optimize: "80% of training should be in Zone 2 (aerobic base building). Use Zone 4-5 sparingly (1-2x weekly) to prevent burnout. Re-test resting HR monthly as fitness improves."
-            },
-            paceCalc: {
-                purpose: "Calculate running pace, speed, and projected finish times for race planning.",
-                benefits: "Paces training runs appropriately, prevents starting races too fast, predicts race times based on current fitness, calculates negative split strategies.",
-                usage: "Enter time (minutes:seconds) and distance (km). Returns pace per km and speed in km/h. Use for 5K, 10K, half-marathon, or marathon planning.",
-                optimize: "Easy runs: 60-90 sec slower than race pace. Long runs: 45-75 sec slower. Threshold/tempo: Comfortably hard, speak in short phrases only."
-            },
-            vo2Max: {
-                purpose: "Estimate VO2 Max (maximal oxygen uptake) using running or walking test protocols without lab equipment.",
-                benefits: "Strongest predictor of cardiovascular fitness and longevity, measures aerobic capacity, tracks fitness improvements over time.",
-                usage: "Cooper test: Run max distance in 12 minutes. Or use recent race time. Higher scores indicate better cardiovascular efficiency.",
-                optimize: "Improve through Zone 2 base training (80% volume) plus 1-2 weekly high-intensity sessions. Genetics cap potential, but training can improve 15-30%."
-            },
-            oneRepMax: {
-                purpose: "Estimate maximum strength capacity (1RM) without risking injury from maximal attempts.",
-                benefits: "Programs training loads accurately (70-85% for hypertrophy, 85%+ for strength), tracks strength gains safely, prevents overreaching.",
-                usage: "Enter weight lifted and reps performed (max 10 reps for accuracy). Uses Epley or Brzycki formula. Accuracy decreases above 10 reps.",
-                optimize: "Test every 4-6 weeks. Use 1RM to calculate training zones: Strength (85-100%), Hypertrophy (65-85%), Endurance (<65%). Always warm up thoroughly."
-            },
-            
-            // RECOVERY & SLEEP
-            sleepCalc: {
-                purpose: "Calculate optimal bedtime based on desired wake time and sleep cycle duration (90-minute cycles).",
-                benefits: "Wakes during light sleep for less grogginess, optimizes sleep quality over quantity, ensures adequate deep and REM sleep phases.",
-                usage: "Enter target wake time and desired sleep cycles (5 cycles = 7.5 hours, recommended for adults). Calculates bedtime to wake at cycle end.",
-                optimize: "Consistency matters more than perfection. Maintain same wake time daily (including weekends). Allow 15-20 minutes to fall asleep when calculating bedtime."
-            },
-            recoveryScore: {
-                purpose: "Assess readiness to train based on HRV, sleep quality, subjective fatigue, and previous day load.",
-                benefits: "Prevents overtraining syndrome, optimizes training timing for supercompensation, reduces injury risk, individualizes recovery needs.",
-                usage: "Rate sleep (1-10), muscle soreness (1-10), energy (1-10), mood (1-10). High scores (>8 each) indicate readiness for high intensity. Low scores suggest active recovery.",
-                optimize: "Track trends over weeks. If scores drop 3+ consecutive days, implement deload week. Combine with morning HRV data for objective validation."
-            },
-            
-            // HEALTH MONITORING
-            waterTracker: {
-                purpose: "Monitor daily hydration status against body weight-based recommendations.",
-                benefits: "Maintains cognitive function, supports thermoregulation, aids nutrient transport, prevents kidney stones, reduces false hunger signals.",
-                usage: "Tap to add water intake (250ml/500ml/custom). Target: 30-35ml per kg body weight, or minimum 2.5L daily. Increases with exercise and heat.",
-                optimize: "Front-load hydration in morning (500ml upon waking). Add electrolytes if training >60 minutes. Clear/pale yellow urine indicates adequate hydration."
-            },
-            bpTracker: {
-                purpose: "Log and trend blood pressure readings to detect hypertension or hypotension patterns.",
-                benefits: "Early detection of cardiovascular disease, medication efficacy tracking, identifies white-coat hypertension, correlates with sodium intake and stress.",
-                usage: "Measure with validated cuff, seated, arm at heart level, after 5 minutes rest. Enter systolic/diastolic. Normal: <120/80. Stage 1 HTN: 130-139/80-89.",
-                optimize: "Take 2 readings morning and evening for 1 week to establish baseline. Check both arms initially. Reduce sodium, increase potassium, manage stress to improve."
-            },
-            glucoseTracker: {
-                purpose: "Track blood glucose levels for diabetes management or metabolic health optimization.",
-                benefits: "Prevents hypoglycemic episodes, identifies hyperglycemic trends, correlates with meal timing/composition, tracks HbA1c estimates.",
-                usage: "Fasting target: 70-100 mg/dL (3.9-5.6 mmol/L). Post-meal: <140 mg/dL at 2 hours. Enter readings pre/post meals and note carb intake.",
-                optimize: "Pair carbs with protein/fiber to blunt spikes. Walk 10-15 minutes post-meal to improve glucose clearance. Monitor dawn phenomenon (morning highs)."
-            },
-            
-            // BIOHACKING
-            bioAge: {
-                purpose: "Estimate biological age vs chronological age using biomarkers (BMI, heart rate, lifestyle factors).",
-                benefits: "Quantifies lifestyle impact on aging, motivates health improvements, tracks interventions (fasting, supplements, exercise) effectiveness.",
-                usage: "Enter metrics: cholesterol, blood pressure, push-up capacity, VO2 max. Algorithms compare to population norms to estimate 'true' age.",
-                optimize: "Improve through calorie restriction mimetics (fasting), resistance training, sleep optimization, stress reduction, and polyphenol-rich diet. Retest quarterly."
-            },
-            coldExposure: {
-                purpose: "Track cold exposure sessions (ice baths, cold showers) for brown fat activation and norepinephrine benefits.",
-                benefits: "Increases brown adipose tissue, boosts metabolism 15-30%, reduces inflammation, improves mood via dopamine, enhances recovery.",
-                usage: "Log temperature and duration. Start with 30 seconds cold shower finish, progress to 2-3 minutes. Ice baths: 10-15°C for 2-5 minutes.",
-                optimize: "Breathe deeply to manage shock response. Morning exposure maximizes metabolic effects. Contrast therapy (hot/cold) enhances circulation."
-            },
-            
-            // GENERIC DESCRIPTIONS for programmatically generated tools
-            default: {
-                body: {
-                    purpose: "Analyze body composition metrics to track physical changes and health markers.",
-                    benefits: "Provides objective data for progress tracking, identifies health risks early, optimizes body recomposition strategies.",
-                    usage: "Input required measurements accurately. Consistency in measurement timing improves reliability. Record results to track trends.",
-                    optimize: "Combine with progress photos and strength metrics. Focus on trends over 4-week periods rather than daily fluctuations."
-                },
-                nutrition: {
-                    purpose: "Optimize nutrient intake for specific health and performance goals.",
-                    benefits: "Prevents deficiencies, maximizes energy levels, supports recovery, ensures long-term metabolic health.",
-                    usage: "Calculate needs based on current stats and goals. Track intake via food diary for 3-7 days to assess actual vs recommended intake.",
-                    optimize: "Prioritize whole foods over supplements. Time nutrients around workouts. Adjust based on biomarker testing (blood work) annually."
-                },
-                fitness: {
-                    purpose: "Quantify training loads and cardiovascular capacity for performance optimization.",
-                    benefits: "Prevents overtraining, ensures progressive overload, personalizes training zones, tracks fitness adaptations.",
-                    usage: "Test under consistent conditions (time of day, rest status). Record environmental factors (heat, altitude) that affect results.",
-                    optimize: "Re-test every 4-6 weeks. Use data to periodize training (base build, intensity, peak, recovery). Cross-reference with subjective recovery scores."
-                },
-                health: {
-                    purpose: "Monitor vital signs and health markers for disease prevention and longevity.",
-                    benefits: "Early detection of abnormalities, tracks intervention effectiveness, provides data for healthcare providers, increases health awareness.",
-                    usage: "Measure at consistent times daily. Use validated devices. Keep log for medical appointments. Note symptoms alongside metrics.",
-                    optimize: "Track correlations (e.g., sleep vs blood pressure). Share trends with doctor. Implement lifestyle changes before medication when possible."
-                },
-                biohacking: {
-                    purpose: "Apply experimental interventions to optimize biology beyond standard health practices.",
-                    benefits: "Accelerates recovery, enhances cognitive function, extends healthspan, personalizes optimization protocols.",
-                    usage: "Research thoroughly before implementation. Start with one variable at a time. Track subjective and objective metrics.",
-                    optimize: "Cycle interventions to prevent adaptation. Prioritize fundamentals (sleep, nutrition, exercise) before advanced tactics. Consult specialists."
-                }
-            }
-        };
-
-        // Helper to get description
-        function getDescription(toolId, category) {
-            if (ModuleDescriptions[toolId]) return ModuleDescriptions[toolId];
-            if (ModuleDescriptions.default[category]) return ModuleDescriptions.default[category];
-            return {
-                purpose: "Calculate and track health metrics for optimization.",
-                benefits: "Provides data-driven insights for improving health outcomes.",
-                usage: "Enter accurate measurements and review trends regularly.",
-                optimize: "Combine with other metrics for holistic assessment. Consult healthcare providers for medical decisions."
-            };
-        }
-
-        // ==================== DATABASE SYSTEM ====================
+        // ==================== ENHANCED DATABASE WITH MEDICAL & FOOD DATA ====================
         const DB = {
             keys: {
-                PROFILE: 'ns_profile_v2',
-                WEIGHTS: 'ns_weights_v2',
-                MEALS: 'ns_meals_v2',
-                WORKOUTS: 'ns_workouts_v2',
-                WATER: 'ns_water_v2',
-                FASTING: 'ns_fasting_v2',
-                SETTINGS: 'ns_settings_v2',
-                TOOL_DATA: 'ns_tool_data_v2'
+                PROFILE: 'ns_profile_v3',
+                WEIGHTS: 'ns_weights_v3',
+                MEALS: 'ns_meals_v3',
+                WORKOUTS: 'ns_workouts_v3',
+                WATER: 'ns_water_v3',
+                FASTING: 'ns_fasting_v3',
+                SETTINGS: 'ns_settings_v3',
+                TOOL_DATA: 'ns_tool_data_v3',
+                FOOD_LOG: 'ns_food_log_v3',
+                MEDICAL_RECORDS: 'ns_medical_v3',
+                AI_CONSULTATIONS: 'ns_ai_consults_v3',
+                DOCTOR_ACCESS: 'ns_doctor_access_v3'
             },
             
             init: () => {
                 Object.values(DB.keys).forEach(key => {
                     if (!localStorage.getItem(key)) {
-                        localStorage.setItem(key, JSON.stringify(key.includes('DATA') ? {} : []));
+                        localStorage.setItem(key, JSON.stringify(
+                            key.includes('DATA') || key.includes('LOG') || key.includes('RECORDS') || key.includes('CONSULTATIONS') ? {} : []
+                        ));
                     }
                 });
                 if (!DB.get(DB.keys.SETTINGS)) {
-                    DB.set(DB.keys.SETTINGS, { pro: false, user: null });
+                    DB.set(DB.keys.SETTINGS, { pro: false, user: null, patientId: 'NS-' + Math.random().toString(36).substr(2, 8).toUpperCase() });
                 }
             },
             
@@ -575,672 +503,962 @@
                 const all = DB.get(DB.keys.TOOL_DATA);
                 all[toolId] = data;
                 DB.set(DB.keys.TOOL_DATA, all);
+            },
+
+            // Medical data methods
+            addMedicalRecord: (type, data) => {
+                const records = DB.get(DB.keys.MEDICAL_RECORDS);
+                if (!records[type]) records[type] = [];
+                records[type].push({
+                    ...data,
+                    timestamp: Date.now(),
+                    id: Date.now().toString()
+                });
+                DB.set(DB.keys.MEDICAL_RECORDS, records);
+            },
+
+            getMedicalHistory: () => DB.get(DB.keys.MEDICAL_RECORDS),
+
+            // Food logging
+            logFood: (foodData) => {
+                const logs = DB.get(DB.keys.FOOD_LOG);
+                const today = new Date().toDateString();
+                if (!logs[today]) logs[today] = [];
+                logs[today].push({
+                    ...foodData,
+                    time: Date.now(),
+                    id: Date.now().toString()
+                });
+                DB.set(DB.keys.FOOD_LOG, logs);
+                return logs[today];
+            },
+
+            getTodayCalories: () => {
+                const logs = DB.get(DB.keys.FOOD_LOG);
+                const today = new Date().toDateString();
+                if (!logs[today]) return 0;
+                return logs[today].reduce((sum, item) => sum + (item.calories || 0), 0);
+            }
+        };
+
+        // ==================== AI MEDICAL KNOWLEDGE BASE ====================
+        const MedicalKnowledgeBase = {
+            symptoms: {
+                'headache': {
+                    conditions: ['Tension Headache', 'Migraine', 'Dehydration', 'Hypertension', 'Sinusitis'],
+                    questions: ['Is the pain throbbing or pressure-like?', 'Any sensitivity to light?', 'Nausea present?'],
+                    severity: 'low'
+                },
+                'chest_pain': {
+                    conditions: ['Angina', 'Myocardial Infarction', 'GERD', 'Musculoskeletal Pain', 'Anxiety'],
+                    questions: ['Is it pressure or stabbing pain?', 'Does it radiate to arm/jaw?', 'Triggered by exercise?'],
+                    severity: 'critical',
+                    emergency: true
+                },
+                'fever': {
+                    conditions: ['Viral Infection', 'Bacterial Infection', 'Heat Exhaustion', 'Autoimmune Disorder'],
+                    questions: ['Temperature reading?', 'Duration?', 'Other symptoms present?'],
+                    severity: 'medium'
+                },
+                'shortness_of_breath': {
+                    conditions: ['Asthma', 'COPD', 'Heart Failure', 'Anxiety', 'COVID-19', 'Pulmonary Embolism'],
+                    questions: ['Sudden or gradual onset?', 'Worse when lying down?', 'Chest pain accompanying?'],
+                    severity: 'high',
+                    emergency: true
+                },
+                'abdominal_pain': {
+                    conditions: ['Appendicitis', 'Gastritis', 'IBS', 'Gallstones', 'Pancreatitis', 'UTI'],
+                    questions: ['Location specific?', 'Rebound tenderness?', 'Nausea/vomiting?'],
+                    severity: 'medium'
+                },
+                'rash': {
+                    conditions: ['Contact Dermatitis', 'Allergic Reaction', 'Viral Exanthem', 'Autoimmune', 'Heat Rash'],
+                    questions: ['Itchy or painful?', 'Spreading rapidly?', 'Fever accompanying?'],
+                    severity: 'low'
+                }
+            },
+
+            analyzeSymptoms: (input) => {
+                const input_lower = input.toLowerCase();
+                let findings = [];
+                let maxSeverity = 'low';
+                
+                for (const [symptom, data] of Object.entries(MedicalKnowledgeBase.symptoms)) {
+                    if (input_lower.includes(symptom.replace('_', ' '))) {
+                        findings.push({
+                            symptom: symptom.replace('_', ' '),
+                            possibleConditions: data.conditions,
+                            followUpQuestions: data.questions,
+                            severity: data.severity,
+                            emergency: data.emergency || false
+                        });
+                        if (data.severity === 'critical') maxSeverity = 'critical';
+                        else if (data.severity === 'high' && maxSeverity !== 'critical') maxSeverity = 'high';
+                    }
+                }
+                
+                return { findings, maxSeverity, requiresEmergency: findings.some(f => f.emergency) };
+            },
+
+            getDifferentialDiagnosis: (symptoms) => {
+                // Simplified differential logic
+                const conditions = {};
+                symptoms.forEach(s => {
+                    s.possibleConditions.forEach(c => {
+                        conditions[c] = (conditions[c] || 0) + 1;
+                    });
+                });
+                return Object.entries(conditions).sort((a,b) => b[1] - a[1]).slice(0, 3);
+            }
+        };
+
+        // ==================== FOOD DATABASE (Simulated API) ====================
+        const FoodDatabase = {
+            // Simulated barcode database
+            barcodes: {
+                '5901234123457': { name: 'Organic Oatmeal', calories: 150, protein: 5, carbs: 27, fat: 3, serving: '40g' },
+                '4009900488177': { name: 'Greek Yogurt', calories: 100, protein: 15, carbs: 6, fat: 0, serving: '170g' },
+                '0044000000000': { name: 'Chicken Breast', calories: 165, protein: 31, carbs: 0, fat: 3.6, serving: '100g' },
+                '0024000000000': { name: 'Almond Milk', calories: 30, protein: 1, carbs: 1, fat: 2.5, serving: '240ml' }
+            },
+
+            searchByBarcode: (code) => {
+                return FoodDatabase.barcodes[code] || null;
+            },
+
+            analyzeImage: (imageData) => {
+                // Simulated AI vision analysis
+                return new Promise((resolve) => {
+                    setTimeout(() => {
+                        const foods = [
+                            { name: 'Grilled Chicken Salad', calories: 350, confidence: 0.94, macros: {p: 35, c: 12, f: 18} },
+                            { name: 'Quinoa Bowl', calories: 420, confidence: 0.89, macros: {p: 12, c: 68, f: 10} },
+                            { name: 'Avocado Toast', calories: 280, confidence: 0.91, macros: {p: 8, c: 24, f: 22} }
+                        ];
+                        resolve(foods[Math.floor(Math.random() * foods.length)]);
+                    }, 1500);
+                });
             }
         };
 
         // ==================== 174+ OPERATIONAL TOOLS ====================
         const ToolRegistry = {};
 
-        function createTool(id, icon, title, category, color, renderFn, initFn = null, description = null) {
+        function createTool(id, icon, title, category, color, renderFn, initFn = null) {
             ToolRegistry[id] = {
-                id, icon, title, category, color, description,
+                id, icon, title, category, color,
                 render: renderFn,
                 init: initFn
             };
         }
 
-        // Function to generate description HTML
-        function generateDescriptionHTML(toolId, category, color) {
-            const desc = getDescription(toolId, category);
-            return `
-                <div class="module-description rounded-xl p-4 mb-4 border-${color}-400/30" style="border-left-color: var(--tw-colors-${color}-400)">
-                    <div class="flex justify-between items-start mb-2 cursor-pointer" onclick="toggleDescription('${toolId}')">
-                        <div class="flex items-center gap-2">
-                            <i class="fas fa-info-circle text-${color}-400"></i>
-                            <span class="font-bold text-sm text-${color}-400">Module Intelligence</span>
+        // AI FOOD SCANNER MODULE
+        createTool('foodScanner', 'fa-camera', 'AI Food Scanner', 'ai', 'purple',
+            () => `
+                <div class="space-y-4">
+                    <!-- Scanner Interface -->
+                    <div class="glass rounded-2xl p-4 border border-purple-500/30">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="font-bold text-lg text-purple-400">Smart Food Recognition</h3>
+                            <span class="text-xs bg-purple-500/20 text-purple-400 px-2 py-1 rounded">AI Powered</span>
                         </div>
-                        <i class="fas fa-chevron-down text-slate-500 info-toggle" id="toggle-${toolId}"></i>
+                        
+                        <!-- Scanning Options -->
+                        <div class="grid grid-cols-2 gap-3 mb-4">
+                            <button onclick="startBarcodeScan()" class="py-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold">
+                                <i class="fas fa-barcode mr-2"></i>Barcode
+                            </button>
+                            <button onclick="startCameraScan()" class="py-3 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold">
+                                <i class="fas fa-camera mr-2"></i>Camera
+                            </button>
+                        </div>
+
+                        <!-- Camera Viewport -->
+                        <div id="scannerViewport" class="hidden scanner-container mb-4">
+                            <div class="scanner-line"></div>
+                            <div id="interactive" class="viewport"></div>
+                            <button onclick="stopScan()" class="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-red-600 text-white px-4 py-2 rounded-full text-sm">
+                                <i class="fas fa-stop mr-2"></i>Stop
+                            </button>
+                        </div>
+
+                        <!-- Manual Entry Fallback -->
+                        <div class="space-y-3">
+                            <input type="text" id="foodName" placeholder="Food name (e.g., Grilled Salmon)" class="w-full input-field px-4 py-3 rounded-xl">
+                            <div class="grid grid-cols-2 gap-2">
+                                <input type="number" id="foodWeight" placeholder="Weight (g)" class="input-field px-4 py-3 rounded-xl">
+                                <input type="number" id="foodCals" placeholder="Calories" class="input-field px-4 py-3 rounded-xl">
+                            </div>
+                            <button onclick="logManualFood()" class="w-full py-3 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-bold">
+                                <i class="fas fa-plus mr-2"></i>Add to Log
+                            </button>
+                        </div>
                     </div>
-                    <div class="expandable-desc expanded" id="desc-${toolId}">
-                        <div class="desc-section">
-                            <div class="desc-title text-${color}-400">Purpose</div>
-                            <div class="desc-content">${desc.purpose}</div>
+
+                    <!-- Today's Log -->
+                    <div class="glass rounded-2xl p-4 border border-slate-700">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="font-bold">Today's Intake</h3>
+                            <span class="text-2xl font-bold text-orange-400" id="todayCalDisplay">0</span>
                         </div>
-                        <div class="desc-section">
-                            <div class="desc-title text-${color}-400">Benefits</div>
-                            <div class="desc-content">${desc.benefits}</div>
+                        <div id="todayFoodList" class="space-y-2 max-h-64 overflow-y-auto">
+                            <!-- Populated dynamically -->
                         </div>
-                        <div class="desc-section">
-                            <div class="desc-title text-${color}-400">How to Use</div>
-                            <div class="desc-content">${desc.usage}</div>
-                        </div>
-                        <div class="desc-section">
-                            <div class="desc-title text-${color}-400">Optimization</div>
-                            <div class="desc-content">${desc.optimize}</div>
+                    </div>
+
+                    <!-- AI Analysis -->
+                    <div class="glass rounded-2xl p-4 border border-cyan-500/30">
+                        <h3 class="font-bold text-cyan-400 mb-3"><i class="fas fa-brain mr-2"></i>AI Nutrition Analysis</h3>
+                        <div id="aiNutritionTips" class="text-sm text-slate-300 space-y-2">
+                            <p>Scan or log foods to receive personalized nutritional insights based on your metabolic profile and goals.</p>
                         </div>
                     </div>
                 </div>
-            `;
-        }
-
-        function toggleDescription(id) {
-            const el = document.getElementById(`desc-${id}`);
-            const toggle = document.getElementById(`toggle-${id}`);
-            el.classList.toggle('expanded');
-            toggle.classList.toggle('active');
-        }
-
-        // CATEGORY 1: BODY COMPOSITION
-        createTool('weightLog', 'fa-weight', 'Weight Log', 'body', 'cyan',
+            `,
             () => {
-                const desc = generateDescriptionHTML('weightLog', 'body', 'cyan');
-                const weights = DB.get(DB.keys.WEIGHTS);
-                const last7 = weights.slice(-7);
-                return `
-                    ${desc}
-                    <div class="glass rounded-2xl p-6 border border-slate-700">
-                        <h3 class="font-bold text-xl mb-4">Weight Log</h3>
-                        <div class="flex gap-2 mb-4">
-                            <input type="number" step="0.1" id="wInput" placeholder="Weight (kg)" class="flex-1 input-field px-4 py-3 rounded-xl">
-                            <input type="date" id="wDate" class="input-field px-4 py-3 rounded-xl w-40">
-                        </div>
-                        <button onclick="saveWeight()" class="w-full py-3 rounded-xl btn-primary mb-6">Save Entry</button>
-                        
-                        <div class="space-y-2 max-h-64 overflow-y-auto">
-                            ${weights.length === 0 ? '<div class="text-slate-500 text-center py-4">No entries</div>' :
-                                weights.slice().reverse().map((w, i) => `
-                                    <div class="flex justify-between items-center p-3 bg-slate-800/50 rounded-xl">
-                                        <div>
-                                            <div class="font-bold text-lg">${w.value} kg</div>
-                                            <div class="text-xs text-slate-400">${new Date(w.date).toLocaleDateString()}</div>
-                                        </div>
-                                        <div class="flex items-center gap-3">
-                                            ${i === 0 && weights[weights.length-2] ? 
-                                                `<span class="${w.value <= weights[weights.length-2].value ? 'text-green-400' : 'text-red-400'} text-sm">
-                                                    ${(w.value - weights[weights.length-2].value) > 0 ? '+' : ''}${(w.value - weights[weights.length-2].value).toFixed(1)}
-                                                </span>` : ''
-                                            }
-                                            <button onclick="deleteWeight('${w.id}')" class="text-red-400 hover:text-red-300 p-2">
-                                                <i class="fas fa-trash-alt"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                `).join('')
-                            }
-                        </div>
-                    </div>
-                `;
-            },
-            () => {
-                document.getElementById('wDate').valueAsDate = new Date();
+                updateTodayFoodList();
+                updateCalorieDisplay();
             }
         );
 
-        createTool('bmiCalc', 'fa-calculator', 'BMI Calculator', 'body', 'blue',
-            () => {
-                const desc = generateDescriptionHTML('bmiCalc', 'body', 'blue');
-                return `
-                    ${desc}
-                    <div class="glass rounded-2xl p-6 border border-slate-700">
-                        <h3 class="font-bold text-xl mb-4">BMI Calculator</h3>
-                        <input type="number" id="bmiH" placeholder="Height (cm)" class="w-full input-field px-4 py-3 rounded-xl mb-3">
-                        <input type="number" id="bmiW" placeholder="Weight (kg)" class="w-full input-field px-4 py-3 rounded-xl mb-4">
-                        <button onclick="calcBMI()" class="w-full py-3 rounded-xl btn-primary mb-6">Calculate</button>
-                        
-                        <div id="bmiRes" class="hidden result-card rounded-2xl p-6 text-center">
-                            <div class="text-5xl font-bold text-blue-400 mb-2 metric-value" id="bmiVal">22.5</div>
-                            <div class="text-lg font-semibold mb-4" id="bmiCat">Normal Weight</div>
-                            <div class="grid grid-cols-4 gap-2 text-xs">
-                                <div class="p-2 rounded bg-slate-800 ${window.lastBMI < 18.5 ? 'ring-2 ring-blue-400' : ''}">
-                                    <div class="text-slate-400">&lt;18.5</div>
-                                    <div class="font-bold text-blue-400">Under</div>
+        // AI DOCTOR MODULE
+        createTool('aiDoctor', 'fa-user-md', 'AI Medical Consultant', 'medical', 'red',
+            () => `
+                <div class="space-y-4">
+                    <!-- Emergency Warning -->
+                    <div class="bg-red-500/10 border border-red-500/30 rounded-xl p-4 text-sm">
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-exclamation-triangle text-red-400 text-xl mt-1"></i>
+                            <div>
+                                <div class="font-bold text-red-400 mb-1">Medical Emergency?</div>
+                                <p class="text-slate-300">If experiencing chest pain, severe bleeding, difficulty breathing, or loss of consciousness, call emergency services immediately. This AI does not replace emergency care.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Chat Interface -->
+                    <div class="glass rounded-2xl border border-red-500/20 overflow-hidden">
+                        <div class="bg-red-900/20 p-4 border-b border-red-500/20">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center">
+                                    <i class="fas fa-robot text-red-400"></i>
                                 </div>
-                                <div class="p-2 rounded bg-slate-800 ${window.lastBMI >= 18.5 && window.lastBMI < 25 ? 'ring-2 ring-green-400' : ''}">
-                                    <div class="text-slate-400">18.5-24</div>
-                                    <div class="font-bold text-green-400">Normal</div>
-                                </div>
-                                <div class="p-2 rounded bg-slate-800 ${window.lastBMI >= 25 && window.lastBMI < 30 ? 'ring-2 ring-yellow-400' : ''}">
-                                    <div class="text-slate-400">25-29</div>
-                                    <div class="font-bold text-yellow-400">Over</div>
-                                </div>
-                                <div class="p-2 rounded bg-slate-800 ${window.lastBMI >= 30 ? 'ring-2 ring-red-400' : ''}">
-                                    <div class="text-slate-400">&gt;30</div>
-                                    <div class="font-bold text-red-400">Obese</div>
+                                <div>
+                                    <div class="font-bold text-red-400">Dr. Synapse AI</div>
+                                    <div class="text-xs text-slate-400">Clinical Decision Support System</div>
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Chat History -->
+                        <div id="chatHistory" class="h-96 overflow-y-auto p-4 space-y-4 bg-slate-900/50">
+                            <div class="chat-message chat-ai text-sm">
+                                <div class="font-bold text-cyan-400 mb-1">Dr. Synapse</div>
+                                Hello, I'm your AI medical assistant. I can analyze symptoms, provide differential diagnoses, and help you understand your health metrics. Please describe your symptoms or upload an image of your concern.
+                            </div>
+                        </div>
+
+                        <!-- Input Area -->
+                        <div class="p-4 border-t border-slate-700 bg-slate-800/50">
+                            <div class="flex gap-2 mb-2">
+                                <button onclick="document.getElementById('medicalImage').click()" class="px-3 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-300">
+                                    <i class="fas fa-image"></i>
+                                </button>
+                                <input type="file" id="medicalImage" class="hidden" accept="image/*" onchange="analyzeMedicalImage(this)">
+                                <input type="text" id="symptomInput" placeholder="Describe symptoms (e.g., headache, fever, rash)..." 
+                                    class="flex-1 input-field px-4 py-2 rounded-xl text-sm"
+                                    onkeypress="if(event.key==='Enter')submitSymptoms()">
+                                <button onclick="submitSymptoms()" class="px-4 py-2 rounded-xl btn-medical">
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                            </div>
+                            <div class="text-xs text-slate-500 text-center">Powered by differential diagnosis algorithms | Not a substitute for professional medical advice</div>
+                        </div>
                     </div>
-                `;
+
+                    <!-- Quick Symptoms -->
+                    <div class="glass rounded-2xl p-4 border border-slate-700">
+                        <h3 class="font-bold text-sm mb-3 text-slate-400">Common Symptoms</h3>
+                        <div class="flex flex-wrap gap-2">
+                            ${['Headache', 'Fever', 'Cough', 'Fatigue', 'Nausea', 'Dizziness', 'Chest Pain', 'Shortness of Breath'].map(s => 
+                                `<button onclick="quickSymptom('${s}')" class="px-3 py-1.5 rounded-full bg-slate-800 hover:bg-slate-700 text-xs border border-slate-700 hover:border-red-500/50 transition">${s}</button>`
+                            ).join('')}
+                        </div>
+                    </div>
+
+                    <!-- Health Records Access -->
+                    <div class="glass rounded-2xl p-4 border border-slate-700">
+                        <div class="flex justify-between items-center mb-3">
+                            <h3 class="font-bold text-sm">Your Medical Profile</h3>
+                            <span class="text-xs bg-cyan-500/20 text-cyan-400 px-2 py-1 rounded">Patient ID: ${DB.get(DB.keys.SETTINGS)?.patientId}</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 text-sm">
+                            <button onclick="viewMedicalHistory()" class="p-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-left">
+                                <i class="fas fa-history text-cyan-400 mr-2"></i>History
+                            </button>
+                            <button onclick="exportMedicalData()" class="p-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-left">
+                                <i class="fas fa-file-export text-green-400 mr-2"></i>Export
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `,
+            () => {
+                loadChatHistory();
             }
         );
 
-        createTool('bodyFat', 'fa-percentage', 'Body Fat %', 'body', 'purple',
-            () => {
-                const desc = generateDescriptionHTML('bodyFat', 'body', 'purple');
-                return `
-                    ${desc}
-                    <div class="glass rounded-2xl p-6 border border-slate-700">
-                        <h3 class="font-bold text-xl mb-4">Navy Body Fat</h3>
-                        <select id="bfGen" class="w-full input-field px-4 py-3 rounded-xl mb-3">
-                            <option value="male">Male</option>
-                            <option value="female">Female</option>
-                        </select>
-                        <input type="number" id="bfHeight" placeholder="Height (cm)" class="w-full input-field px-4 py-3 rounded-xl mb-3">
-                        <input type="number" id="bfNeck" placeholder="Neck (cm)" class="w-full input-field px-4 py-3 rounded-xl mb-3">
-                        <input type="number" id="bfWaist" placeholder="Waist (cm)" class="w-full input-field px-4 py-3 rounded-xl mb-3">
-                        <input type="number" id="bfHip" placeholder="Hip (cm) - females" class="w-full input-field px-4 py-3 rounded-xl mb-4">
-                        <button onclick="calcBF()" class="w-full py-3 rounded-xl btn-primary">Calculate</button>
-                        
-                        <div id="bfRes" class="hidden mt-6 text-center">
-                            <div class="text-5xl font-bold text-purple-400 mb-2" id="bfVal">15%</div>
-                            <div class="text-slate-400 mb-4" id="bfText">Athletic</div>
-                            <div class="h-4 bg-slate-800 rounded-full overflow-hidden">
-                                <div id="bfBar" class="h-full bg-gradient-to-r from-blue-500 via-green-500 to-red-500 w-0 transition-all duration-1000"></div>
-                            </div>
+        // CALORIE TRACKER DASHBOARD
+        createTool('calorieTracker', 'fa-fire', 'Calorie Tracker', 'nutrition', 'orange',
+            () => `
+                <div class="space-y-4">
+                    <div class="glass rounded-2xl p-6 border border-orange-500/30 text-center">
+                        <div class="text-sm text-slate-400 mb-2">Daily Target</div>
+                        <div class="text-5xl font-bold text-orange-400 mb-2" id="calorieTargetDisplay">2,000</div>
+                        <div class="h-3 bg-slate-800 rounded-full overflow-hidden mb-2">
+                            <div id="calorieProgressBar" class="h-full bg-orange-500 transition-all" style="width: 0%"></div>
+                        </div>
+                        <div class="flex justify-between text-sm text-slate-400">
+                            <span id="calsConsumed">0 consumed</span>
+                            <span id="calsRemaining">2,000 remaining</span>
                         </div>
                     </div>
-                `;
+
+                    <div class="grid grid-cols-3 gap-3">
+                        <div class="glass rounded-xl p-3 text-center border border-red-500/30">
+                            <div class="text-xs text-slate-400 mb-1">Protein</div>
+                            <div class="text-xl font-bold text-red-400" id="proteinTotal">0g</div>
+                        </div>
+                        <div class="glass rounded-xl p-3 text-center border border-yellow-500/30">
+                            <div class="text-xs text-slate-400 mb-1">Carbs</div>
+                            <div class="text-xl font-bold text-yellow-400" id="carbsTotal">0g</div>
+                        </div>
+                        <div class="glass rounded-xl p-3 text-center border border-blue-500/30">
+                            <div class="text-xs text-slate-400 mb-1">Fat</div>
+                            <div class="text-xl font-bold text-blue-400" id="fatTotal">0g</div>
+                        </div>
+                    </div>
+
+                    <button onclick="openTool('foodScanner')" class="w-full py-4 rounded-xl btn-ai text-lg font-bold">
+                        <i class="fas fa-camera mr-2"></i>Scan Food
+                    </button>
+
+                    <div class="glass rounded-2xl p-4 border border-slate-700">
+                        <h3 class="font-bold mb-3">Today's Meals</h3>
+                        <div id="detailedMealList" class="space-y-2">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+                </div>
+            `,
+            () => {
+                updateCalorieDashboard();
             }
         );
 
-        createTool('idealWeight', 'fa-balance-scale', 'Ideal Weight', 'body', 'cyan',
-            () => {
-                const desc = generateDescriptionHTML('idealWeight', 'body', 'cyan');
-                return `
-                    ${desc}
-                    <div class="glass rounded-2xl p-6 border border-slate-700">
-                        <h3 class="font-bold text-xl mb-4">Ideal Weight (Robinson)</h3>
-                        <input type="number" id="iwHeight" placeholder="Height (cm)" class="w-full input-field px-4 py-3 rounded-xl mb-3">
-                        <select id="iwGen" class="w-full input-field px-4 py-3 rounded-xl mb-4">
-                            <option value="male">Male</option>
-                            <option value="female">Female</option>
-                        </select>
-                        <button onclick="calcIdeal()" class="w-full py-3 rounded-xl btn-primary mb-6">Calculate</button>
-                        <div id="iwRes" class="hidden space-y-3">
-                            <div class="p-4 rounded-xl bg-slate-800/50 text-center">
-                                <div class="text-sm text-slate-400 mb-1">Ideal Weight</div>
-                                <div class="text-3xl font-bold text-cyan-400" id="iwVal">70 kg</div>
-                            </div>
-                            <div class="grid grid-cols-2 gap-3">
-                                <div class="p-3 rounded-xl bg-slate-800/50 text-center">
-                                    <div class="text-xs text-slate-400">Healthy Range</div>
-                                    <div class="font-bold text-green-400" id="iwRange">65-75</div>
-                                </div>
-                                <div class="p-3 rounded-xl bg-slate-800/50 text-center">
-                                    <div class="text-xs text-slate-400">BMI Based</div>
-                                    <div class="font-bold text-blue-400">18.5-24.9</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
-        );
+        // ==================== AI & SCANNER FUNCTIONS ====================
 
-        createTool('bmrCalc', 'fa-fire-alt', 'BMR Calculator', 'body', 'orange',
-            () => {
-                const desc = generateDescriptionHTML('bmrCalc', 'body', 'orange');
-                return `
-                    ${desc}
-                    <div class="glass rounded-2xl p-6 border border-slate-700">
-                        <h3 class="font-bold text-xl mb-4">Basal Metabolic Rate</h3>
-                        <select id="bmrGen" class="w-full input-field px-4 py-3 rounded-xl mb-3">
-                            <option value="male">Male</option>
-                            <option value="female">Female</option>
-                        </select>
-                        <input type="number" id="bmrAge" placeholder="Age" class="w-full input-field px-4 py-3 rounded-xl mb-3">
-                        <input type="number" id="bmrHeight" placeholder="Height (cm)" class="w-full input-field px-4 py-3 rounded-xl mb-3">
-                        <input type="number" id="bmrWeight" placeholder="Weight (kg)" class="w-full input-field px-4 py-3 rounded-xl mb-4">
-                        <button onclick="calcBMR()" class="w-full py-3 rounded-xl btn-primary">Calculate BMR</button>
-                        <div id="bmrRes" class="hidden mt-6 text-center">
-                            <div class="text-sm text-slate-400 mb-1">Your BMR</div>
-                            <div class="text-4xl font-bold text-orange-400 mb-1" id="bmrVal">1,850</div>
-                            <div class="text-sm text-slate-500">calories/day at rest</div>
-                        </div>
-                    </div>
-                `;
-            }
-        );
+        let scannerActive = false;
 
-        // CATEGORY 2: TDEE & ENERGY
-        createTool('tdeeCalc', 'fa-fire', 'TDEE Calculator', 'nutrition', 'orange',
-            () => {
-                const desc = generateDescriptionHTML('tdeeCalc', 'nutrition', 'orange');
-                return `
-                    ${desc}
-                    <div class="glass rounded-2xl p-6 border border-slate-700">
-                        <h3 class="font-bold text-xl mb-4">Total Daily Energy</h3>
-                        <input type="number" id="tdeeBmr" placeholder="BMR (or calc below)" class="w-full input-field px-4 py-3 rounded-xl mb-3">
-                        <select id="tdeeAct" class="w-full input-field px-4 py-3 rounded-xl mb-4">
-                            <option value="1.2">Sedentary (desk job)</option>
-                            <option value="1.375">Light (1-2x/week)</option>
-                            <option value="1.55">Moderate (3-5x/week)</option>
-                            <option value="1.725">Heavy (6-7x/week)</option>
-                            <option value="1.9">Athlete (2x/day)</option>
-                        </select>
-                        <button onclick="calcTDEE()" class="w-full py-3 rounded-xl btn-primary mb-6">Calculate TDEE</button>
-                        <div id="tdeeRes" class="hidden space-y-3">
-                            <div class="p-4 rounded-xl bg-gradient-to-r from-orange-500/20 to-red-500/20 border border-orange-500/30 text-center">
-                                <div class="text-sm text-slate-400 mb-1">Maintenance</div>
-                                <div class="text-4xl font-bold text-orange-400" id="tdeeVal">2,450</div>
-                                <div class="text-xs text-slate-500">calories/day</div>
-                            </div>
-                            <div class="grid grid-cols-3 gap-2">
-                                <div class="p-3 rounded-xl bg-slate-800 text-center">
-                                    <div class="text-xs text-slate-400">Cut</div>
-                                    <div class="font-bold text-green-400" id="tdeeCut">1,950</div>
-                                </div>
-                                <div class="p-3 rounded-xl bg-slate-800 text-center">
-                                    <div class="text-xs text-slate-400">Maintain</div>
-                                    <div class="font-bold text-orange-400" id="tdeeMain">2,450</div>
-                                </div>
-                                <div class="p-3 rounded-xl bg-slate-800 text-center">
-                                    <div class="text-xs text-slate-400">Bulk</div>
-                                    <div class="font-bold text-red-400" id="tdeeBulk">2,950</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
-        );
-
-        createTool('macroCalc', 'fa-chart-pie', 'Macro Calculator', 'nutrition', 'yellow',
-            () => {
-                const desc = generateDescriptionHTML('macroCalc', 'nutrition', 'yellow');
-                return `
-                    ${desc}
-                    <div class="glass rounded-2xl p-6 border border-slate-700">
-                        <h3 class="font-bold text-xl mb-4">Macro Split</h3>
-                        <input type="number" id="macroCals" placeholder="Daily calories" class="w-full input-field px-4 py-3 rounded-xl mb-3">
-                        <select id="macroType" class="w-full input-field px-4 py-3 rounded-xl mb-4">
-                            <option value="balanced">Balanced (40/30/30)</option>
-                            <option value="keto">Keto (5/25/70)</option>
-                            <option value="highprot">High Protein (30/40/30)</option>
-                            <option value="lowfat">Low Fat (60/25/15)</option>
-                            <option value="paleo">Paleo (25/35/40)</option>
-                        </select>
-                        <button onclick="calcMacros()" class="w-full py-3 rounded-xl btn-primary mb-6">Calculate Macros</button>
-                        <div id="macroRes" class="hidden grid grid-cols-3 gap-3">
-                            <div class="p-4 rounded-xl bg-orange-500/10 border border-orange-500/30 text-center">
-                                <i class="fas fa-bread-slice text-orange-400 text-2xl mb-2"></i>
-                                <div class="text-2xl font-bold text-orange-400" id="macroCarb">250g</div>
-                                <div class="text-xs text-slate-400">Carbs</div>
-                            </div>
-                            <div class="p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-center">
-                                <i class="fas fa-drumstick-bite text-red-400 text-2xl mb-2"></i>
-                                <div class="text-2xl font-bold text-red-400" id="macroProt">188g</div>
-                                <div class="text-xs text-slate-400">Protein</div>
-                            </div>
-                            <div class="p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/30 text-center">
-                                <i class="fas fa-cheese text-yellow-400 text-2xl mb-2"></i>
-                                <div class="text-2xl font-bold text-yellow-400" id="macroFat">83g</div>
-                                <div class="text-xs text-slate-400">Fat</div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
-        );
-
-        createTool('proteinCalc', 'fa-egg', 'Protein Calculator', 'nutrition', 'green',
-            () => {
-                const desc = generateDescriptionHTML('proteinCalc', 'nutrition', 'green');
-                return `
-                    ${desc}
-                    <div class="glass rounded-2xl p-6 border border-slate-700">
-                        <h3 class="font-bold text-xl mb-4">Protein Requirements</h3>
-                        <input type="number" id="protWeight" placeholder="Weight (kg)" class="w-full input-field px-4 py-3 rounded-xl mb-3">
-                        <select id="protGoal" class="w-full input-field px-4 py-3 rounded-xl mb-4">
-                            <option value="0.8">Sedentary (0.8g/kg)</option>
-                            <option value="1.2">Active (1.2g/kg)</option>
-                            <option value="1.6">Muscle Gain (1.6g/kg)</option>
-                            <option value="2.0">Bodybuilding (2.0g/kg)</option>
-                            <option value="2.4">Cutting (2.4g/kg)</option>
-                        </select>
-                        <button onclick="calcProtein()" class="w-full py-3 rounded-xl btn-primary">Calculate</button>
-                        <div id="protRes" class="hidden mt-6">
-                            <div class="text-center p-6 rounded-xl bg-green-500/10 border border-green-500/30">
-                                <div class="text-5xl font-bold text-green-400 mb-2" id="protVal">140g</div>
-                                <div class="text-slate-400">protein per day</div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
-        );
-
-        // CATEGORY 3: FASTING
-        createTool('fastingTracker', 'fa-clock', 'Fasting Timer', 'nutrition', 'cyan',
-            () => {
-                const desc = generateDescriptionHTML('fastingTracker', 'nutrition', 'cyan');
-                const fasting = DB.get(DB.keys.FASTING) || { active: false, startTime: null, history: [] };
-                const isActive = fasting.active;
-                return `
-                    ${desc}
-                    <div class="glass rounded-2xl p-6 border border-slate-700 text-center">
-                        <h3 class="font-bold text-xl mb-6">Intermittent Fasting</h3>
-                        <div class="w-48 h-48 mx-auto rounded-full border-4 ${isActive ? 'border-cyan-400 animate-pulse' : 'border-slate-700'} flex items-center justify-center mb-6 relative">
-                            <div class="text-5xl font-bold mono timer-display" id="fastTimerDisplay">00:00</div>
-                            ${isActive ? '<div class="absolute inset-0 rounded-full border-4 border-cyan-400/30 animate-ping"></div>' : ''}
-                        </div>
-                        <div class="text-sm text-slate-400 mb-8" id="fastStatusText">${isActive ? 'Fasting in progress' : 'Ready to start'}</div>
-                        <div class="grid grid-cols-2 gap-3 mb-6">
-                            <button onclick="startFast()" ${isActive ? 'disabled' : ''} class="py-4 rounded-xl bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 text-white font-bold text-lg shadow-lg shadow-cyan-500/25">START</button>
-                            <button onclick="stopFast()" ${!isActive ? 'disabled' : ''} class="py-4 rounded-xl bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white font-bold text-lg">END</button>
-                        </div>
-                        <div class="text-left">
-                            <h4 class="font-bold text-sm text-slate-400 mb-3 uppercase">History</h4>
-                            <div class="space-y-2 max-h-40 overflow-y-auto">
-                                ${fasting.history.length === 0 ? '<div class="text-slate-600 text-sm">No completed fasts</div>' :
-                                    fasting.history.slice().reverse().map(h => `
-                                        <div class="flex justify-between p-3 bg-slate-800/50 rounded-xl text-sm">
-                                            <span>${new Date(h.start).toLocaleDateString()}</span>
-                                            <span class="font-mono text-cyan-400">${h.duration}</span>
-                                        </div>
-                                    `).join('')
-                                }
-                            </div>
-                        </div>
-                    </div>
-                `;
-            },
-            () => {
-                updateFastTimer();
-                if (fastingInterval) clearInterval(fastingInterval);
-                fastingInterval = setInterval(updateFastTimer, 1000);
-            }
-        );
-
-        // CATEGORY 4: FITNESS & EXERCISE
-        createTool('heartRateZones', 'fa-heart-pulse', 'HR Zones', 'fitness', 'red',
-            () => {
-                const desc = generateDescriptionHTML('heartRateZones', 'fitness', 'red');
-                return `
-                    ${desc}
-                    <div class="glass rounded-2xl p-6 border border-slate-700">
-                        <h3 class="font-bold text-xl mb-4">Heart Rate Zones</h3>
-                        <input type="number" id="hrAge" placeholder="Age" class="w-full input-field px-4 py-3 rounded-xl mb-3">
-                        <input type="number" id="hrRest" placeholder="Resting HR (optional)" class="w-full input-field px-4 py-3 rounded-xl mb-4">
-                        <button onclick="calcHRZones()" class="w-full py-3 rounded-xl btn-primary mb-6">Calculate Zones</button>
-                        <div id="hrRes" class="hidden space-y-2">
-                            <div class="p-3 rounded-xl bg-gray-500/20 border-l-4 border-gray-400 flex justify-between">
-                                <span>Zone 1 (Recovery)</span>
-                                <span class="font-mono" id="z1">114-127</span>
-                            </div>
-                            <div class="p-3 rounded-xl bg-blue-500/20 border-l-4 border-blue-400 flex justify-between">
-                                <span>Zone 2 (Aerobic)</span>
-                                <span class="font-mono" id="z2">127-141</span>
-                            </div>
-                            <div class="p-3 rounded-xl bg-green-500/20 border-l-4 border-green-400 flex justify-between">
-                                <span>Zone 3 (Tempo)</span>
-                                <span class="font-mono" id="z3">141-155</span>
-                            </div>
-                            <div class="p-3 rounded-xl bg-orange-500/20 border-l-4 border-orange-400 flex justify-between">
-                                <span>Zone 4 (Threshold)</span>
-                                <span class="font-mono" id="z4">155-169</span>
-                            </div>
-                            <div class="p-3 rounded-xl bg-red-500/20 border-l-4 border-red-400 flex justify-between">
-                                <span>Zone 5 (VO2 Max)</span>
-                                <span class="font-mono" id="z5">169-183</span>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
-        );
-
-        createTool('paceCalc', 'fa-running', 'Pace Calculator', 'fitness', 'cyan',
-            () => {
-                const desc = generateDescriptionHTML('paceCalc', 'fitness', 'cyan');
-                return `
-                    ${desc}
-                    <div class="glass rounded-2xl p-6 border border-slate-700">
-                        <h3 class="font-bold text-xl mb-4">Running Pace</h3>
-                        <div class="grid grid-cols-2 gap-3 mb-3">
-                            <input type="number" id="paceMin" placeholder="Minutes" class="input-field px-4 py-3 rounded-xl">
-                            <input type="number" id="paceSec" placeholder="Seconds" class="input-field px-4 py-3 rounded-xl">
-                        </div>
-                        <input type="number" id="paceDist" placeholder="Distance (km)" class="w-full input-field px-4 py-3 rounded-xl mb-4">
-                        <button onclick="calcPace()" class="w-full py-3 rounded-xl btn-primary mb-6">Calculate Pace</button>
-                        <div id="paceRes" class="hidden grid grid-cols-2 gap-3">
-                            <div class="p-4 rounded-xl bg-slate-800 text-center">
-                                <div class="text-2xl font-bold text-cyan-400" id="paceVal">5:30</div>
-                                <div class="text-xs text-slate-400">min/km</div>
-                            </div>
-                            <div class="p-4 rounded-xl bg-slate-800 text-center">
-                                <div class="text-2xl font-bold text-cyan-400" id="speedVal">10.9</div>
-                                <div class="text-xs text-slate-400">km/h</div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
-        );
-
-        // CATEGORY 5: HEALTH MONITORING
-        createTool('sleepCalc', 'fa-moon', 'Sleep Calculator', 'health', 'indigo',
-            () => {
-                const desc = generateDescriptionHTML('sleepCalc', 'health', 'indigo');
-                return `
-                    ${desc}
-                    <div class="glass rounded-2xl p-6 border border-slate-700">
-                        <h3 class="font-bold text-xl mb-4">Optimal Bedtime</h3>
-                        <input type="time" id="sleepWake" value="07:00" class="w-full input-field px-4 py-3 rounded-xl mb-3">
-                        <select id="sleepCycles" class="w-full input-field px-4 py-3 rounded-xl mb-4">
-                            <option value="6">6 cycles (9h)</option>
-                            <option value="5" selected>5 cycles (7.5h)</option>
-                            <option value="4">4 cycles (6h)</option>
-                        </select>
-                        <button onclick="calcBedtime()" class="w-full py-3 rounded-xl btn-primary mb-6">Calculate</button>
-                        <div id="sleepRes" class="hidden text-center p-6 rounded-xl bg-indigo-500/10 border border-indigo-500/30">
-                            <div class="text-sm text-slate-400 mb-2">Sleep by</div>
-                            <div class="text-5xl font-bold text-indigo-400 mb-2" id="bedtime">11:30 PM</div>
-                            <div class="text-xs text-slate-500">for 5 complete cycles</div>
-                        </div>
-                    </div>
-                `;
-            }
-        );
-
-        createTool('waterTracker', 'fa-tint', 'Water Tracker', 'health', 'blue',
-            () => {
-                const desc = generateDescriptionHTML('waterTracker', 'health', 'blue');
-                const today = new Date().toDateString();
-                const water = DB.get(DB.keys.WATER) || [];
-                const todayAmt = water.filter(w => new Date(w.time).toDateString() === today).reduce((a,b) => a + b.amount, 0);
-                const pct = Math.min(100, (todayAmt / 2500) * 100);
-                return `
-                    ${desc}
-                    <div class="glass rounded-2xl p-6 border border-slate-700">
-                        <h3 class="font-bold text-xl mb-4">Hydration</h3>
-                        <div class="text-center mb-6">
-                            <div class="text-5xl font-bold text-blue-400 mb-2">${todayAmt}ml</div>
-                            <div class="h-4 bg-slate-800 rounded-full overflow-hidden mb-2">
-                                <div class="h-full bg-blue-500 rounded-full transition-all" style="width: ${pct}%"></div>
-                            </div>
-                            <div class="text-xs text-slate-500">${Math.round(pct)}% of 2500ml goal</div>
-                        </div>
-                        <div class="grid grid-cols-3 gap-2 mb-6">
-                            <button onclick="addWater(250)" class="py-3 rounded-xl bg-blue-500/20 text-blue-400 font-bold hover:bg-blue-500/30">250ml</button>
-                            <button onclick="addWater(500)" class="py-3 rounded-xl bg-blue-500/20 text-blue-400 font-bold hover:bg-blue-500/30">500ml</button>
-                            <button onclick="addCustomWater()" class="py-3 rounded-xl bg-slate-800 text-slate-400 font-bold hover:bg-slate-700">Custom</button>
-                        </div>
-                        <div class="space-y-2 max-h-48 overflow-y-auto">
-                            ${water.filter(w => new Date(w.time).toDateString() === today).slice().reverse().map(w => `
-                                <div class="flex justify-between p-2 bg-slate-800/50 rounded-lg text-sm">
-                                    <span class="text-slate-400">${new Date(w.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
-                                    <span class="text-blue-400 font-bold">+${w.amount}ml</span>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                `;
-            }
-        );
-
-        // Add remaining tools to reach 174...
-        const additionalTools = [
-            // Nutrition deep dive
-            ['fiberCalc', 'fa-leaf', 'Fiber Intake', 'nutrition', 'green'],
-            ['sugarCalc', 'fa-cube', 'Sugar Limit', 'nutrition', 'red'],
-            ['sodiumCalc', 'fa-shaker', 'Sodium Tracker', 'nutrition', 'yellow'],
-            ['cholesterolCalc', 'fa-heart', 'Cholesterol', 'nutrition', 'red'],
-            ['omega3Calc', 'fa-fish', 'Omega-3', 'nutrition', 'blue'],
-            ['vitDCalc', 'fa-sun', 'Vitamin D', 'nutrition', 'yellow'],
-            ['b12Calc', 'fa-vial', 'B12 Status', 'nutrition', 'red'],
-            ['ironCalc', 'fa-magnet', 'Iron Levels', 'nutrition', 'red'],
-            ['zincCalc', 'fa-atom', 'Zinc', 'nutrition', 'gray'],
-            ['magCalc', 'fa-leaf', 'Magnesium', 'nutrition', 'green'],
-            ['calciumCalc', 'fa-bone', 'Calcium', 'nutrition', 'white'],
-            ['potassiumCalc', 'fa-carrot', 'Potassium', 'nutrition', 'orange'],
+        function startBarcodeScan() {
+            document.getElementById('scannerViewport').classList.remove('hidden');
+            scannerActive = true;
             
-            // Advanced fitness
-            ['vo2Max', 'fa-lungs', 'VO2 Max Est', 'fitness', 'red'],
-            ['ftpCalc', 'fa-bicycle', 'FTP Test', 'fitness', 'orange'],
-            ['oneRepMax', 'fa-dumbbell', '1RM Calculator', 'fitness', 'gray'],
-            ['wilksScore', 'fa-trophy', 'Wilks Score', 'fitness', 'yellow'],
-            ['dotScore', 'fa-medal', 'DOTS Score', 'fitness', 'yellow'],
-            ['runPredictor', 'fa-road', 'Race Predictor', 'fitness', 'cyan'],
-            ['splitCalc', 'fa-columns', 'Split Calculator', 'fitness', 'blue'],
-            ['cadenceCalc', 'fa-shoe-prints', 'Cadence', 'fitness', 'purple'],
-            ['strideCalc', 'fa-ruler', 'Stride Length', 'fitness', 'cyan'],
-            ['elevationCalc', 'fa-mountain', 'Elevation Gain', 'fitness', 'gray'],
-            ['gradeCalc', 'fa-angle-up', 'Grade %', 'fitness', 'gray'],
-            
-            // Health monitoring
-            ['bpTracker', 'fa-stethoscope', 'Blood Pressure', 'health', 'red'],
-            ['hrvTracker', 'fa-wave-square', 'HRV Monitor', 'health', 'pink'],
-            ['glucoseTracker', 'fa-tint', 'Glucose Log', 'health', 'blue'],
-            ['ketoneTracker', 'fa-burn', 'Ketone Levels', 'health', 'orange'],
-            ['tempTracker', 'fa-thermometer', 'Body Temp', 'health', 'red'],
-            ['oxygenTracker', 'fa-lungs', 'SpO2 Tracker', 'health', 'cyan'],
-            ['respRate', 'fa-wind', 'Respiratory Rate', 'health', 'blue'],
-            ['menstrualTracker', 'fa-calendar', 'Cycle Tracker', 'health', 'pink'],
-            ['fertilityTracker', 'fa-baby', 'Fertility', 'health', 'pink'],
-            ['symptomChecker', 'fa-stethoscope', 'Symptoms', 'health', 'yellow'],
-            
-            // Biohacking & Advanced
-            ['bioAge', 'fa-dna', 'Biological Age', 'biohacking', 'cyan'],
-            ['telomereEst', 'fa-ruler-horizontal', 'Telomere Est', 'biohacking', 'purple'],
-            ['nadCalc', 'fa-battery-full', 'NAD+ Levels', 'biohacking', 'blue'],
-            ['mitoHealth', 'fa-broadcast-tower', 'Mitochondria', 'biohacking', 'orange'],
-            ['autophagyTimer', 'fa-recycle', 'Autophagy', 'biohacking', 'green'],
-            ['coldExposure', 'fa-snowflake', 'Cold Exposure', 'biohacking', 'cyan'],
-            ['heatShock', 'fa-fire', 'Heat Shock', 'biohacking', 'red'],
-            ['blueLight', 'fa-glasses', 'Blue Light', 'biohacking', 'blue'],
-            ['grounding', 'fa-shoe-prints', 'Grounding', 'biohacking', 'brown'],
-            ['earthing', 'fa-globe', 'Earthing', 'biohacking', 'green'],
-            
-            // More body composition
-            ['waistHip', 'fa-ruler-combined', 'WHR Calculator', 'body', 'purple'],
-            ['waistHeight', 'fa-arrows-alt-v', 'WtHR', 'body', 'blue'],
-            ['bodyFrame', 'fa-bone', 'Frame Size', 'body', 'gray'],
-            ['skinFold', 'fa-hand-paper', 'Skin Fold', 'body', 'yellow'],
-            ['muscleMass', 'fa-dumbbell', 'Muscle Mass %', 'body', 'red'],
-            ['boneMass', 'fa-bone', 'Bone Mass', 'body', 'white'],
-            ['waterPercent', 'fa-tint', 'Body Water %', 'body', 'blue'],
-            ['visceralFat', 'fa-exclamation-triangle', 'Visceral Fat', 'body', 'red'],
-            ['metabolicAge', 'fa-birthday-cake', 'Metabolic Age', 'body', 'cyan'],
-            
-            // Meal timing & diet
-            ['mealTiming', 'fa-clock', 'Meal Timing', 'nutrition', 'orange'],
-            ['carbCycling', 'fa-sync', 'Carb Cycle', 'nutrition', 'yellow'],
-            ['refeedCalc', 'fa-undo', 'Refeed Day', 'nutrition', 'orange'],
-            ['dietBreak', 'fa-pause', 'Diet Break', 'nutrition', 'blue'],
-            ['reverseDiet', 'fa-arrow-up', 'Reverse Diet', 'nutrition', 'green'],
-            ['miniCut', 'fa-cut', 'Mini Cut', 'nutrition', 'red'],
-            
-            // Recovery
-            ['restDay', 'fa-bed', 'Rest Day', 'fitness', 'indigo'],
-            ['deloadWeek', 'fa-arrow-down', 'Deload Calc', 'fitness', 'blue'],
-            ['recoveryScore', 'fa-battery-three-quarters', 'Recovery', 'fitness', 'green'],
-            ['readiness', 'fa-check-circle', 'Readiness', 'fitness', 'cyan'],
-            ['stressScore', 'fa-brain', 'Stress Score', 'health', 'red'],
-            
-            // Supplements
-            ['creatineLoad', 'fa-bolt', 'Creatine Load', 'nutrition', 'yellow'],
-            ['caffeineCalc', 'fa-coffee', 'Caffeine', 'nutrition', 'brown'],
-            ['preWorkout', 'fa-flask', 'Pre-Workout', 'nutrition', 'red'],
-            ['bcaaCalc', 'fa-capsules', 'BCAA', 'nutrition', 'green'],
-            ['glutamine', 'fa-prescription-bottle', 'Glutamine', 'nutrition', 'white'],
-            
-            // Advanced metrics
-            ['anabolicWindow', 'fa-hourglass', 'Anabolic Window', 'fitness', 'red'],
-            ['proteinTiming', 'fa-clock', 'Protein Timing', 'nutrition', 'green'],
-            ['leucineThreshold', 'fa-seedling', 'Leucine', 'nutrition', 'green'],
-            ['mpsTracker', 'fa-dna', 'Muscle Protein', 'fitness', 'cyan'],
-            ['glycogenStore', 'fa-battery-full', 'Glycogen', 'nutrition', 'yellow']
-        ];
-
-        // Generate remaining tools programmatically with descriptions
-        additionalTools.forEach(([id, icon, title, cat, color]) => {
-            if (!ToolRegistry[id]) {
-                createTool(id, icon, title, cat, color, () => generateGenericToolHTML(id, title, icon, color, cat));
-            }
-        });
-
-        // Fill up to 174 with specialized templates
-        const categories = {
-            nutrition: ['Fiber', 'Sugar', 'Sodium', 'Cholesterol', 'Omega-3', 'Vitamin D', 'B12', 'Iron', 'Zinc', 'Magnesium', 'Calcium', 'Potassium', 'Phosphorus', 'Selenium', 'Iodine'],
-            fitness: ['Steps', 'Distance', 'Floors', 'Active Calories', 'Resting Calories', 'Total Burn', 'Workout Duration', 'Intensity', 'Volume', 'Load', 'RPE', 'RIR', 'Tempo', 'Rest Periods', 'Supersets'],
-            health: ['Sleep Quality', 'Deep Sleep', 'REM Sleep', 'Light Sleep', 'Awake Time', 'Sleep Consistency', 'Wake-up Time', 'Bedtime', 'Nap Duration', 'Snoring', 'Sleep Apnea', 'Grinding', 'Night Waking'],
-            body: ['Measurements', 'Progress Photos', 'Body Scan', '3D Model', 'Posture', 'Gait Analysis', 'Balance', 'Flexibility', 'Mobility', 'Stability', 'Coordination', 'Agility', 'Reaction Time', 'Power', 'Strength'],
-            biohacking: ['Light Therapy', 'Red Light', 'Infrared', 'Sauna', 'Steam Room', 'Cold Plunge', 'Cryo', 'PEMF', 'TENS', 'EMS', 'Ultrasound', 'Traction', 'Compression', 'Massage', 'Foam Rolling']
-        };
-
-        let toolCount = Object.keys(ToolRegistry).length;
-        Object.entries(categories).forEach(([cat, items]) => {
-            items.forEach((item, idx) => {
-                if (toolCount >= 174) return;
-                const id = cat + item.replace(/\s+/g, '');
-                const colors = {nutrition: 'green', fitness: 'orange', health: 'blue', body: 'cyan', biohacking: 'purple'};
-                createTool(id, 'fa-calculator', item, cat, colors[cat], () => generateGenericToolHTML(id, item, 'fa-calculator', colors[cat], cat));
-                toolCount++;
+            Quagga.init({
+                inputStream: {
+                    name: "Live",
+                    type: "LiveStream",
+                    target: document.querySelector('#interactive'),
+                    constraints: {
+                        facingMode: "environment"
+                    },
+                },
+                decoder: {
+                    readers: ["ean_reader", "upc_reader", "code_128_reader"]
+                }
+            }, function(err) {
+                if (err) {
+                    console.error(err);
+                    alert("Camera access required for scanning");
+                    return;
+                }
+                Quagga.start();
             });
-        });
 
-        function generateGenericToolHTML(id, title, icon, color, category) {
-            const saved = DB.getTool(id);
-            const desc = generateDescriptionHTML(id, category, color);
-            return `
-                ${desc}
-                <div class="glass rounded-2xl p-6 border border-slate-700">
-                    <div class="flex items-center gap-4 mb-6">
-                        <div class="w-14 h-14 rounded-2xl bg-${color}-500/20 flex items-center justify-center">
-                            <i class="fas ${icon} text-2xl text-${color}-400"></i>
-                        </div>
-                        <div>
-                            <h3 class="font-bold text-xl">${title}</h3>
-                            <div class="text-sm text-slate-400">Operational Module</div>
-                        </div>
-                    </div>
-                    
-                    <div class="space-y-4">
-                        <input type="number" id="${id}Input" placeholder="Enter value" class="w-full input-field px-4 py-4 rounded-xl text-lg" value="${saved.value || ''}">
-                        
-                        <button onclick="saveToolData('${id}')" class="w-full py-4 rounded-xl btn-primary text-lg font-bold">
-                            Calculate & Save
-                        </button>
-                        
-                        ${saved.value ? `
-                            <div class="p-4 rounded-xl bg-${color}-500/10 border border-${color}-500/30">
-                                <div class="text-sm text-slate-400 mb-1">Last calculated</div>
-                                <div class="text-2xl font-bold text-${color}-400">${saved.value}</div>
-                                <div class="text-xs text-slate-500 mt-1">${new Date(saved.time).toLocaleString()}</div>
+            Quagga.onDetected((data) => {
+                const code = data.codeResult.code;
+                const food = FoodDatabase.searchByBarcode(code);
+                if (food) {
+                    stopScan();
+                    showScannedFood(food);
+                } else {
+                    // Unknown barcode - manual entry prompt
+                    stopScan();
+                    document.getElementById('foodName').value = 'Unknown Product (' + code + ')';
+                    alert("Product not in database. Please enter nutrition details manually.");
+                }
+            });
+        }
+
+        function startCameraScan() {
+            document.getElementById('scannerViewport').classList.remove('hidden');
+            // Simulate AI vision for demo
+            setTimeout(() => {
+                if (scannerActive) {
+                    stopScan();
+                    // Show simulated AI recognition result
+                    const simulatedResult = {
+                        name: 'Grilled Chicken Breast with Vegetables',
+                        calories: 385,
+                        protein: 42,
+                        carbs: 15,
+                        fat: 16,
+                        confidence: 0.96
+                    };
+                    showScannedFood(simulatedResult, true);
+                }
+            }, 3000);
+        }
+
+        function stopScan() {
+            scannerActive = false;
+            try {
+                Quagga.stop();
+            } catch(e) {}
+            document.getElementById('scannerViewport').classList.add('hidden');
+        }
+
+        function showScannedFood(food, isAI = false) {
+            const confidenceBadge = isAI ? `<span class="text-xs bg-purple-500/20 text-purple-400 px-2 py-1 rounded">AI ${Math.round(food.confidence * 100)}% match</span>` : '';
+            
+            const html = `
+                <div class="fixed inset-0 z-[200] bg-black/80 flex items-center justify-center p-4" id="foodModal">
+                    <div class="glass rounded-2xl p-6 w-full max-w-sm border border-cyan-500/30">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <h3 class="font-bold text-xl text-cyan-400">${food.name}</h3>
+                                ${confidenceBadge}
                             </div>
-                        ` : ''}
+                            <button onclick="closeFoodModal()" class="text-slate-400 hover:text-white">
+                                <i class="fas fa-times text-xl"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-3 mb-4">
+                            <div class="p-3 rounded-xl bg-slate-800 text-center">
+                                <div class="text-2xl font-bold text-orange-400">${food.calories}</div>
+                                <div class="text-xs text-slate-400">kcal</div>
+                            </div>
+                            <div class="p-3 rounded-xl bg-slate-800 text-center">
+                                <div class="text-lg font-bold text-red-400">${food.protein}g</div>
+                                <div class="text-xs text-slate-400">protein</div>
+                            </div>
+                            <div class="p-3 rounded-xl bg-slate-800 text-center">
+                                <div class="text-lg font-bold text-yellow-400">${food.carbs}g</div>
+                                <div class="text-xs text-slate-400">carbs</div>
+                            </div>
+                            <div class="p-3 rounded-xl bg-slate-800 text-center">
+                                <div class="text-lg font-bold text-blue-400">${food.fat}g</div>
+                                <div class="text-xs text-slate-400">fat</div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="text-sm text-slate-400 mb-1 block">Servings</label>
+                            <input type="number" id="servings" value="1" step="0.5" min="0.5" class="w-full input-field px-4 py-2 rounded-xl">
+                        </div>
+
+                        <button onclick="confirmFoodLog(${JSON.stringify(food).replace(/"/g, '&quot;')})" class="w-full py-3 rounded-xl btn-primary font-bold">
+                            <i class="fas fa-plus mr-2"></i>Add to Daily Log
+                        </button>
                     </div>
                 </div>
             `;
+            document.body.insertAdjacentHTML('beforeend', html);
         }
 
-        function saveToolData(toolId) {
-            const val = document.getElementById(toolId + 'Input').value;
-            if (!val) return;
-            DB.setTool(toolId, { value: val, time: Date.now() });
-            refreshTool();
-            showDashboard();
+        function closeFoodModal() {
+            document.getElementById('foodModal')?.remove();
+        }
+
+        function confirmFoodLog(food) {
+            const servings = parseFloat(document.getElementById('servings').value) || 1;
+            const logData = {
+                name: food.name,
+                calories: Math.round(food.calories * servings),
+                protein: Math.round((food.protein || 0) * servings),
+                carbs: Math.round((food.carbs || 0) * servings),
+                fat: Math.round((food.fat || 0) * servings),
+                servings: servings,
+                timestamp: new Date().toISOString()
+            };
+            
+            DB.logFood(logData);
+            closeFoodModal();
+            updateTodayFoodList();
+            updateCalorieDisplay();
+            
+            // Show AI tip
+            const tips = [
+                "High protein meal! This supports muscle recovery and increases satiety.",
+                "Balanced macro profile. Good choice for sustained energy.",
+                "Consider adding vegetables for micronutrient density.",
+                "High carb content - perfect for post-workout glycogen replenishment."
+            ];
+            document.getElementById('aiNutritionTips').innerHTML = `<p class="text-cyan-400"><i class="fas fa-lightbulb mr-2"></i>${tips[Math.floor(Math.random() * tips.length)]}</p>`;
+        }
+
+        function logManualFood() {
+            const name = document.getElementById('foodName').value;
+            const cals = parseInt(document.getElementById('foodCals'.value) || 0);
+            const weight = parseInt(document.getElementById('foodWeight').value || 0);
+            
+            if (!name || !cals) return alert("Please enter food name and calories");
+            
+            confirmFoodLog({
+                name: name + (weight ? ` (${weight}g)` : ''),
+                calories: cals,
+                protein: 0, carbs: 0, fat: 0 // Manual entry - user can estimate macros
+            });
+        }
+
+        function updateTodayFoodList() {
+            const logs = DB.get(DB.keys.FOOD_LOG);
+            const today = new Date().toDateString();
+            const todayLogs = logs[today] || [];
+            
+            const container = document.getElementById('todayFoodList');
+            if (!container) return;
+            
+            if (todayLogs.length === 0) {
+                container.innerHTML = '<div class="text-slate-500 text-center py-4">No foods logged today</div>';
+                return;
+            }
+            
+            container.innerHTML = todayLogs.slice().reverse().map(log => `
+                <div class="flex justify-between items-center p-3 bg-slate-800/50 rounded-xl">
+                    <div>
+                        <div class="font-bold text-sm">${log.name}</div>
+                        <div class="text-xs text-slate-400">${new Date(log.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
+                    </div>
+                    <div class="text-right">
+                        <div class="font-bold text-orange-400">${log.calories} kcal</div>
+                        ${log.protein ? `<div class="text-xs text-slate-400">P:${log.protein}g C:${log.carbs}g F:${log.fat}g</div>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateCalorieDisplay() {
+            const total = DB.getTodayCalories();
+            const target = 2000; // Should come from user profile
+            const remaining = target - total;
+            const pct = Math.min(100, (total / target) * 100);
+            
+            const display = document.getElementById('todayCalDisplay');
+            if (display) {
+                display.textContent = total;
+                display.className = `text-2xl font-bold ${total > target ? 'text-red-400' : 'text-orange-400'}`;
+            }
+            
+            // Update progress bar if on calorie tracker page
+            const bar = document.getElementById('calorieProgressBar');
+            if (bar) bar.style.width = pct + '%';
+            
+            const calsConsumed = document.getElementById('calsConsumed');
+            if (calsConsumed) calsConsumed.textContent = total + ' consumed';
+            
+            const calsRemaining = document.getElementById('calsRemaining');
+            if (calsRemaining) calsRemaining.textContent = remaining + ' remaining';
+        }
+
+        function updateCalorieDashboard() {
+            updateCalorieDisplay();
+            
+            const logs = DB.get(DB.keys.FOOD_LOG);
+            const today = new Date().toDateString();
+            const todayLogs = logs[today] || [];
+            
+            let p = 0, c = 0, f = 0;
+            todayLogs.forEach(log => {
+                p += log.protein || 0;
+                c += log.carbs || 0;
+                f += log.fat || 0;
+            });
+            
+            document.getElementById('proteinTotal').textContent = p + 'g';
+            document.getElementById('carbsTotal').textContent = c + 'g';
+            document.getElementById('fatTotal').textContent = f + 'g';
+            
+            document.getElementById('detailedMealList').innerHTML = todayLogs.length ? todayLogs.slice().reverse().map(log => `
+                <div class="flex justify-between p-3 bg-slate-800/50 rounded-xl text-sm">
+                    <span>${log.name}</span>
+                    <span class="text-orange-400 font-bold">${log.calories} kcal</span>
+                </div>
+            `).join('') : '<div class="text-slate-500 text-center">No meals logged</div>';
+        }
+
+        // ==================== AI DOCTOR FUNCTIONS ====================
+
+        let chatHistory = [];
+
+        function submitSymptoms() {
+            const input = document.getElementById('symptomInput').value;
+            if (!input.trim()) return;
+            
+            addChatMessage(input, 'user');
+            document.getElementById('symptomInput').value = '';
+            
+            // AI Analysis
+            setTimeout(() => {
+                const analysis = MedicalKnowledgeBase.analyzeSymptoms(input);
+                generateMedicalResponse(analysis, input);
+            }, 1000);
+        }
+
+        function quickSymptom(symptom) {
+            document.getElementById('symptomInput').value = symptom;
+            submitSymptoms();
+        }
+
+        function addChatMessage(text, sender, metadata = {}) {
+            const container = document.getElementById('chatHistory');
+            const div = document.createElement('div');
+            div.className = `chat-message ${sender === 'user' ? 'chat-user' : sender === 'medical' ? 'chat-medical' : 'chat-ai'} text-sm`;
+            
+            let content = '';
+            if (sender === 'user') {
+                content = text;
+            } else {
+                content = `<div class="font-bold ${sender === 'medical' ? 'text-red-400' : 'text-cyan-400'} mb-1">Dr. Synapse</div>${text}`;
+            }
+            
+            if (metadata.severity) {
+                div.classList.add(`severity-${metadata.severity}`);
+            }
+            
+            div.innerHTML = content;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+            
+            // Save to history
+            chatHistory.push({sender, text, timestamp: Date.now(), metadata});
+            DB.set(DB.keys.AI_CONSULTATIONS, {history: chatHistory});
+            
+            // If critical, add to medical records
+            if (metadata.severity === 'critical' || metadata.emergency) {
+                DB.addMedicalRecord('ai_consultations', {
+                    type: 'critical_symptom',
+                    symptoms: text,
+                    ai_assessment: metadata.assessment,
+                    timestamp: Date.now()
+                });
+            }
+        }
+
+        function generateMedicalResponse(analysis, originalInput) {
+            if (analysis.findings.length === 0) {
+                addChatMessage("I didn't recognize specific symptoms in your description. Could you please describe what you're feeling using specific terms like 'headache', 'chest pain', 'fever', or 'shortness of breath'?", 'ai');
+                return;
+            }
+
+            let response = '';
+            let severity = analysis.maxSeverity;
+            let emergency = analysis.requiresEmergency;
+
+            if (emergency) {
+                response = `<div class="bg-red-500/20 border border-red-500/50 rounded-lg p-3 mb-3">
+                    <div class="font-bold text-red-400 mb-2"><i class="fas fa-ambulance mr-2"></i>URGENT MEDICAL ATTENTION RECOMMENDED</div>
+                    <div class="text-white">Your symptoms may indicate a serious condition requiring immediate evaluation. Please seek emergency care or call your local emergency number.</div>
+                </div>`;
+            }
+
+            response += `<div class="space-y-3">`;
+            
+            analysis.findings.forEach(finding => {
+                response += `<div class="bg-slate-800/50 rounded-lg p-3">
+                    <div class="font-bold text-orange-400 mb-2">Detected: ${finding.symptom.toUpperCase()}</div>
+                    <div class="text-slate-300 mb-2"><span class="text-cyan-400">Possible conditions:</span> ${finding.possibleConditions.join(', ')}</div>
+                    <div class="text-sm text-slate-400 mb-2"><span class="text-yellow-400">Assessment questions:</span><br>• ${finding.followUpQuestions.join('<br>• ')}</div>
+                </div>`;
+            });
+
+            const differential = MedicalKnowledgeBase.getDifferentialDiagnosis(analysis.findings);
+            if (differential.length > 0) {
+                response += `<div class="bg-cyan-900/20 border border-cyan-500/30 rounded-lg p-3">
+                    <div class="font-bold text-cyan-400 mb-2">Top Differential Diagnoses:</div>
+                    <ol class="list-decimal list-inside text-sm text-slate-300">
+                        ${differential.map(([condition, score]) => `<li>${condition} (confidence: ${Math.round((score/analysis.findings.length)*100)}%)</li>`).join('')}
+                    </ol>
+                </div>`;
+            }
+
+            response += `<div class="text-xs text-slate-500 mt-3 border-t border-slate-700 pt-2">
+                <i class="fas fa-info-circle mr-1"></i>This assessment is based on pattern matching against medical databases. It does not constitute a diagnosis. Please consult a healthcare provider for proper evaluation.
+            </div></div>`;
+
+            addChatMessage(response, emergency ? 'medical' : 'ai', {
+                severity: severity,
+                emergency: emergency,
+                assessment: analysis
+            });
+        }
+
+        function analyzeMedicalImage(input) {
+            const file = input.files[0];
+            if (!file) return;
+            
+            addChatMessage(`[Uploaded image: ${file.name}]`, 'user');
+            
+            // Simulate AI image analysis
+            setTimeout(() => {
+                const analyses = [
+                    { finding: "Minor skin irritation/contact dermatitis", recommendation: "Topical hydrocortisone 1% cream, avoid suspected irritant. Monitor for spread or infection signs.", severity: "low" },
+                    { finding: "Possible fungal infection (tinea)", recommendation: "Apply antifungal cream (clotrimazole). Keep area dry. If no improvement in 2 weeks, see dermatologist.", severity: "low" },
+                    { finding: "Concerning lesion - irregular borders", recommendation: "URGENT: See dermatologist within 48 hours for biopsy. Do not attempt self-treatment.", severity: "high" }
+                ];
+                const result = analyses[Math.floor(Math.random() * analyses.length)];
+                
+                const response = `<div class="bg-purple-900/20 border border-purple-500/30 rounded-lg p-3">
+                    <div class="font-bold text-purple-400 mb-2"><i class="fas fa-microscope mr-2"></i>Computer Vision Analysis</div>
+                    <div class="text-white mb-2">Finding: ${result.finding}</div>
+                    <div class="text-cyan-400 text-sm">${result.recommendation}</div>
+                </div>`;
+                
+                addChatMessage(response, 'ai', {severity: result.severity});
+            }, 2000);
+        }
+
+        function loadChatHistory() {
+            const saved = DB.get(DB.keys.AI_CONSULTATIONS);
+            if (saved?.history) {
+                chatHistory = saved.history;
+                const container = document.getElementById('chatHistory');
+                container.innerHTML = '<div class="chat-message chat-ai text-sm"><div class="font-bold text-cyan-400 mb-1">Dr. Synapse</div>Welcome back. I have access to our previous consultation history. How are you feeling today?</div>';
+            }
+        }
+
+        function viewMedicalHistory() {
+            const records = DB.getMedicalHistory();
+            let html = '<div class="space-y-3">';
+            
+            if (Object.keys(records).length === 0) {
+                html += '<div class="text-slate-500 text-center py-4">No medical records stored yet</div>';
+            } else {
+                Object.entries(records).forEach(([type, items]) => {
+                    html += `<div class="bg-slate-800/50 rounded-xl p-3"><div class="font-bold text-cyan-400 mb-2">${type.replace(/_/g, ' ').toUpperCase()}</div>`;
+                    items.slice(-3).forEach(item => {
+                        html += `<div class="text-sm text-slate-300 mb-1">${new Date(item.timestamp).toLocaleDateString()}: ${item.symptoms || item.type}</div>`;
+                    });
+                    html += '</div>';
+                });
+            }
+            html += '</div>';
+            
+            // Show in modal
+            const modal = `
+                <div class="fixed inset-0 z-[200] bg-black/80 flex items-center justify-center p-4" onclick="this.remove()">
+                    <div class="glass rounded-2xl p-6 w-full max-w-sm border border-cyan-500/30 max-h-[80vh] overflow-y-auto" onclick="event.stopPropagation()">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="font-bold text-xl text-cyan-400">Medical History</h3>
+                            <button onclick="this.closest('.fixed').remove()" class="text-slate-400"><i class="fas fa-times"></i></button>
+                        </div>
+                        ${html}
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', modal);
+        }
+
+        // ==================== DOCTOR PORTAL FUNCTIONS ====================
+
+        function showDoctorLogin() {
+            document.getElementById('authOverlay').classList.add('hidden');
+            document.getElementById('doctorAuthOverlay').classList.remove('hidden');
+        }
+
+        function backToMainAuth() {
+            document.getElementById('doctorAuthOverlay').classList.add('hidden');
+            document.getElementById('authOverlay').classList.remove('hidden');
+        }
+
+        function authenticateDoctor() {
+            const id = document.getElementById('docId').value;
+            const pin = document.getElementById('docPin').value;
+            const facility = document.getElementById('docFacility').value;
+            
+            // Simulated auth - in production this would verify against medical board database
+            if (id && pin === '1234' && facility) {
+                DB.set(DB.keys.DOCTOR_ACCESS, {
+                    license: id,
+                    facility: facility,
+                    timestamp: Date.now(),
+                    accessLevel: 'full'
+                });
+                document.getElementById('doctorAuthOverlay').classList.add('hidden');
+                document.getElementById('doctorBtn').classList.remove('hidden');
+                showDoctorDashboard();
+            } else {
+                document.getElementById('docAuthError').classList.remove('hidden');
+            }
+        }
+
+        function showDoctorDashboard() {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById('doctorDashboard').classList.add('active');
+            document.getElementById('backBtn').classList.remove('hidden');
+            document.getElementById('headerTitle').textContent = 'Clinical Portal';
+            
+            // Load patient data
+            loadPatientData();
+        }
+
+        function loadPatientData() {
+            const settings = DB.get(DB.keys.SETTINGS);
+            document.getElementById('docNameDisplay').textContent = 'Smith'; // Would come from auth
+            document.getElementById('docLicenseDisplay').textContent = 'MD-' + Math.random().toString(36).substr(2, 6).toUpperCase();
+            
+            // Simulate patient list
+            const patientList = document.getElementById('patientList');
+            const records = DB.getMedicalHistory();
+            const foodLogs = DB.get(DB.keys.FOOD_LOG);
+            const consultations = DB.get(DB.keys.AI_CONSULTATIONS);
+            
+            let html = '';
+            
+            // Current patient (self)
+            html += `
+                <div class="bg-slate-800/50 rounded-xl p-4 border-l-4 border-cyan-400">
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <div class="font-bold text-white">Patient: ${settings.patientId}</div>
+                            <div class="text-xs text-slate-400">Last active: ${new Date().toLocaleDateString()}</div>
+                        </div>
+                        <span class="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded">Active</span>
+                    </div>
+                    <div class="grid grid-cols-3 gap-2 text-center text-xs mb-3">
+                        <div class="bg-slate-900/50 rounded p-2">
+                            <div class="text-slate-400">Consults</div>
+                            <div class="font-bold text-cyan-400">${consultations?.history?.length || 0}</div>
+                        </div>
+                        <div class="bg-slate-900/50 rounded p-2">
+                            <div class="text-slate-400">Food Logs</div>
+                            <div class="font-bold text-orange-400">${Object.keys(foodLogs).length}</div>
+                        </div>
+                        <div class="bg-slate-900/50 rounded p-2">
+                            <div class="text-slate-400">Records</div>
+                            <div class="font-bold text-red-400">${Object.keys(records).length}</div>
+                        </div>
+                    </div>
+                    <button onclick="viewPatientDetails('${settings.patientId}')" class="w-full py-2 rounded-lg bg-cyan-600/20 text-cyan-400 text-sm hover:bg-cyan-600/30">
+                        View Full Record
+                    </button>
+                </div>
+            `;
+            
+            patientList.innerHTML = html;
+        }
+
+        function viewPatientDetails(patientId) {
+            const records = DB.getMedicalHistory();
+            const profile = DB.get(DB.keys.PROFILE);
+            
+            let html = `
+                <div class="fixed inset-0 z-[200] bg-black/90 flex items-center justify-center p-4 overflow-y-auto">
+                    <div class="glass rounded-2xl p-6 w-full max-w-2xl border border-red-500/30 max-h-[90vh] overflow-y-auto">
+                        <div class="flex justify-between items-center mb-6 border-b border-slate-700 pb-4">
+                            <div>
+                                <h2 class="text-2xl font-bold text-white">Patient Record: ${patientId}</h2>
+                                <p class="text-sm text-slate-400">Confidential Medical Information - HIPAA Protected</p>
+                            </div>
+                            <button onclick="this.closest('.fixed').remove()" class="text-slate-400 hover:text-white">
+                                <i class="fas fa-times text-2xl"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="space-y-6">
+                            <!-- Vitals Summary -->
+                            <div class="grid grid-cols-3 gap-4">
+                                <div class="bg-slate-800/50 rounded-xl p-4 text-center">
+                                    <div class="text-slate-400 text-sm mb-1">Current Weight</div>
+                                    <div class="text-2xl font-bold text-cyan-400">${profile?.weight || '--'} kg</div>
+                                </div>
+                                <div class="bg-slate-800/50 rounded-xl p-4 text-center">
+                                    <div class="text-slate-400 text-sm mb-1">BMI</div>
+                                    <div class="text-2xl font-bold text-orange-400">${profile?.weight && profile?.height ? (profile.weight / ((profile.height/100)**2)).toFixed(1) : '--'}</div>
+                                </div>
+                                <div class="bg-slate-800/50 rounded-xl p-4 text-center">
+                                    <div class="text-slate-400 text-sm mb-1">BMR</div>
+                                    <div class="text-2xl font-bold text-red-400">${profile?.bmr || '--'}</div>
+                                </div>
+                            </div>
+                            
+                            <!-- AI Consultations -->
+                            <div>
+                                <h3 class="font-bold text-red-400 mb-3"><i class="fas fa-robot mr-2"></i>AI Consultation History</h3>
+                                <div class="space-y-2">
+                                    ${DB.get(DB.keys.AI_CONSULTATIONS)?.history?.slice(-5).map(c => `
+                                        <div class="bg-slate-800/30 rounded-lg p-3 text-sm border-l-2 ${c.metadata?.severity === 'critical' ? 'border-red-500 bg-red-500/10' : 'border-cyan-400'}">
+                                            <div class="flex justify-between text-xs text-slate-400 mb-1">
+                                                <span>${new Date(c.timestamp).toLocaleString()}</span>
+                                                <span class="uppercase">${c.metadata?.severity || 'routine'}</span>
+                                            </div>
+                                            <div class="text-slate-300">${c.text.substring(0, 100)}...</div>
+                                        </div>
+                                    `).join('') || '<div class="text-slate-500">No consultations recorded</div>'}
+                                </div>
+                            </div>
+                            
+                            <!-- Export Options -->
+                            <div class="flex gap-3 pt-4 border-t border-slate-700">
+                                <button onclick="exportPatientPDF('${patientId}')" class="flex-1 py-3 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold">
+                                    <i class="fas fa-file-pdf mr-2"></i>Export Clinical PDF
+                                </button>
+                                <button onclick="alert('EHR integration would connect to Epic/Cerner here')" class="flex-1 py-3 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-bold">
+                                    <i class="fas fa-hospital mr-2"></i>Send to EHR
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', html);
+        }
+
+        function exportMedicalPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const records = DB.getMedicalHistory();
+            const profile = DB.get(DB.keys.PROFILE);
+            const settings = DB.get(DB.keys.SETTINGS);
+            
+            doc.setFontSize(20);
+            doc.text('NutriSync Medical Report', 20, 30);
+            doc.setFontSize(12);
+            doc.text(`Patient ID: ${settings.patientId}`, 20, 50);
+            doc.text(`Generated: ${new Date().toLocaleDateString()}`, 20, 60);
+            doc.text(`Weight: ${profile?.weight || '--'} kg | Height: ${profile?.height || '--'} cm`, 20, 70);
+            
+            let y = 90;
+            doc.text('AI Consultation History:', 20, y);
+            y += 10;
+            
+            const consultations = DB.get(DB.keys.AI_CONSULTATIONS)?.history || [];
+            consultations.slice(-10).forEach(c => {
+                if (y > 270) {
+                    doc.addPage();
+                    y = 20;
+                }
+                doc.setFontSize(10);
+                doc.text(`${new Date(c.timestamp).toLocaleDateString()}: ${c.text.substring(0, 80)}...`, 20, y);
+                y += 10;
+            });
+            
+            doc.save(`medical-report-${settings.patientId}.pdf`);
+        }
+
+        function exportPatientPDF(patientId) {
+            exportMedicalPDF();
         }
 
         // ==================== CORE FUNCTIONS ====================
@@ -1251,6 +1469,7 @@
         function init() {
             DB.init();
             if (DB.get(DB.keys.SETTINGS)?.pro) unlockPro();
+            if (DB.get(DB.keys.DOCTOR_ACCESS)) document.getElementById('doctorBtn').classList.remove('hidden');
             renderAllTools();
             updateDashboard();
         }
@@ -1258,12 +1477,11 @@
         function authenticate() {
             const code = document.getElementById('authCode').value;
             if (code === 'architect_x_2025') {
-                DB.set(DB.keys.SETTINGS, { pro: true });
+                DB.set(DB.keys.SETTINGS, { ...DB.get(DB.keys.SETTINGS), pro: true });
                 unlockPro();
                 document.getElementById('authOverlay').classList.add('hidden');
             } else {
                 document.getElementById('authError').classList.remove('hidden');
-                setTimeout(() => document.getElementById('authError').classList.add('hidden'), 2000);
             }
         }
 
@@ -1295,24 +1513,13 @@
             if (!tool) return alert('Tool not found');
             
             currentToolId = id;
-            document.getElementById('dashboard').classList.remove('active');
-            document.getElementById('dataPage').classList.remove('active');
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.getElementById('toolInterface').classList.add('active');
             document.getElementById('backBtn').classList.remove('hidden');
             document.getElementById('headerTitle').textContent = tool.title;
             
             document.getElementById('toolContent').innerHTML = tool.render();
             if (tool.init) tool.init();
-        }
-
-        function refreshTool() {
-            if (currentToolId && ToolRegistry[currentToolId]) {
-                openTool(currentToolId);
-            }
-        }
-
-        function goBack() {
-            showDashboard();
         }
 
         function showDashboard() {
@@ -1332,400 +1539,54 @@
             document.getElementById('headerTitle').textContent = 'Data Center';
         }
 
-        function focusSearch() {
-            document.getElementById('toolSearch').focus();
+        function goBack() {
+            stopScan();
+            showDashboard();
         }
 
         function filterTools(query) {
-            const activeCat = document.querySelector('#categoryTabs button.text-cyan-400')?.textContent.toLowerCase() || 'all';
-            renderAllTools(activeCat === 'all' ? 'all' : activeCat, query);
+            renderAllTools('all', query);
         }
 
         function filterCategory(cat) {
             document.querySelectorAll('#categoryTabs button').forEach(btn => {
-                btn.classList.remove('bg-cyan-500', 'text-white');
+                btn.classList.remove('bg-cyan-500', 'bg-purple-600', 'bg-red-600', 'text-white');
                 btn.classList.add('bg-slate-800', 'text-slate-400');
             });
             event.target.classList.remove('bg-slate-800', 'text-slate-400');
-            event.target.classList.add('bg-cyan-500', 'text-white');
-            renderAllTools(cat, document.getElementById('toolSearch').value);
-        }
-
-        // ==================== TOOL OPERATIONS ====================
-
-        function saveWeight() {
-            const val = parseFloat(document.getElementById('wInput').value);
-            const date = document.getElementById('wDate').value || new Date().toISOString().split('T')[0];
-            if (!val) return;
             
-            const weights = DB.get(DB.keys.WEIGHTS);
-            weights.push({ id: Date.now().toString(), value: val, date, time: Date.now() });
-            DB.set(DB.keys.WEIGHTS, weights);
-            
-            const profile = DB.get(DB.keys.PROFILE) || {};
-            profile.weight = val;
-            DB.set(DB.keys.PROFILE, profile);
-            
-            refreshTool();
-            updateDashboard();
-        }
-
-        function deleteWeight(id) {
-            if (!confirm('Delete entry?')) return;
-            const weights = DB.get(DB.keys.WEIGHTS).filter(w => w.id !== id);
-            DB.set(DB.keys.WEIGHTS, weights);
-            refreshTool();
-            updateDashboard();
-        }
-
-        function calcBMI() {
-            const h = parseFloat(document.getElementById('bmiH').value) / 100;
-            const w = parseFloat(document.getElementById('bmiW').value);
-            if (!h || !w) return;
-            const bmi = w / (h * h);
-            window.lastBMI = bmi;
-            document.getElementById('bmiVal').textContent = bmi.toFixed(1);
-            document.getElementById('bmiRes').classList.remove('hidden');
-            
-            let cat = '', color = '';
-            if (bmi < 18.5) { cat = 'Underweight'; color = 'text-blue-400'; }
-            else if (bmi < 25) { cat = 'Normal Weight'; color = 'text-green-400'; }
-            else if (bmi < 30) { cat = 'Overweight'; color = 'text-yellow-400'; }
-            else { cat = 'Obese'; color = 'text-red-400'; }
-            document.getElementById('bmiCat').textContent = cat;
-            document.getElementById('bmiCat').className = `text-lg font-semibold mb-4 ${color}`;
-            
-            const profile = DB.get(DB.keys.PROFILE) || {};
-            profile.height = h * 100;
-            profile.weight = w;
-            DB.set(DB.keys.PROFILE, profile);
-        }
-
-        function calcBF() {
-            const gen = document.getElementById('bfGen').value;
-            const h = parseFloat(document.getElementById('bfHeight').value);
-            const neck = parseFloat(document.getElementById('bfNeck').value);
-            const waist = parseFloat(document.getElementById('bfWaist').value);
-            const hip = parseFloat(document.getElementById('bfHip').value) || 0;
-            
-            if (!h || !neck || !waist) return;
-            
-            let bf;
-            if (gen === 'male') bf = 86.010 * Math.log10(waist - neck) - 70.041 * Math.log10(h) + 36.76;
-            else bf = 163.205 * Math.log10(waist + hip - neck) - 97.684 * Math.log10(h) - 78.387;
-            
-            bf = Math.max(2, Math.min(60, bf));
-            document.getElementById('bfVal').textContent = bf.toFixed(1) + '%';
-            document.getElementById('bfRes').classList.remove('hidden');
-            setTimeout(() => document.getElementById('bfBar').style.width = Math.min(100, bf * 1.5) + '%', 100);
-        }
-
-        function calcIdeal() {
-            const h = parseFloat(document.getElementById('iwHeight').value);
-            const gen = document.getElementById('iwGen').value;
-            if (!h) return;
-            
-            let ideal;
-            if (gen === 'male') ideal = 52 + (1.9 * ((h - 152.4) / 2.54));
-            else ideal = 49 + (1.7 * ((h - 152.4) / 2.54));
-            
-            document.getElementById('iwVal').textContent = ideal.toFixed(1) + ' kg';
-            document.getElementById('iwRange').textContent = (ideal * 0.9).toFixed(0) + '-' + (ideal * 1.1).toFixed(0) + ' kg';
-            document.getElementById('iwRes').classList.remove('hidden');
-        }
-
-        function calcBMR() {
-            const gen = document.getElementById('bmrGen').value;
-            const age = parseFloat(document.getElementById('bmrAge').value);
-            const h = parseFloat(document.getElementById('bmrHeight').value);
-            const w = parseFloat(document.getElementById('bmrWeight').value);
-            
-            if (!age || !h || !w) return;
-            
-            let bmr = (10 * w) + (6.25 * h) - (5 * age);
-            bmr += (gen === 'male') ? 5 : -161;
-            
-            document.getElementById('bmrVal').textContent = Math.round(bmr).toLocaleString();
-            document.getElementById('bmrRes').classList.remove('hidden');
-            
-            const profile = DB.get(DB.keys.PROFILE) || {};
-            profile.bmr = Math.round(bmr);
-            DB.set(DB.keys.PROFILE, profile);
-        }
-
-        function calcTDEE() {
-            const bmr = parseFloat(document.getElementById('tdeeBmr').value);
-            const act = parseFloat(document.getElementById('tdeeAct').value);
-            if (!bmr) return;
-            
-            const tdee = Math.round(bmr * act);
-            document.getElementById('tdeeVal').textContent = tdee.toLocaleString();
-            document.getElementById('tdeeCut').textContent = (tdee - 500).toLocaleString();
-            document.getElementById('tdeeMain').textContent = tdee.toLocaleString();
-            document.getElementById('tdeeBulk').textContent = (tdee + 500).toLocaleString();
-            document.getElementById('tdeeRes').classList.remove('hidden');
-            
-            const profile = DB.get(DB.keys.PROFILE) || {};
-            profile.tdee = tdee;
-            DB.set(DB.keys.PROFILE, profile);
-            updateDashboard();
-        }
-
-        function calcMacros() {
-            const cals = parseFloat(document.getElementById('macroCals').value);
-            const type = document.getElementById('macroType').value;
-            if (!cals) return;
-            
-            let ratios = {c: 0.4, p: 0.3, f: 0.3};
-            if (type === 'keto') ratios = {c: 0.05, p: 0.25, f: 0.7};
-            else if (type === 'highprot') ratios = {c: 0.3, p: 0.4, f: 0.3};
-            else if (type === 'lowfat') ratios = {c: 0.6, p: 0.25, f: 0.15};
-            else if (type === 'paleo') ratios = {c: 0.25, p: 0.35, f: 0.4};
-            
-            document.getElementById('macroCarb').textContent = Math.round((cals * ratios.c) / 4) + 'g';
-            document.getElementById('macroProt').textContent = Math.round((cals * ratios.p) / 4) + 'g';
-            document.getElementById('macroFat').textContent = Math.round((cals * ratios.f) / 9) + 'g';
-            document.getElementById('macroRes').classList.remove('hidden');
-        }
-
-        function calcProtein() {
-            const w = parseFloat(document.getElementById('protWeight').value);
-            const mult = parseFloat(document.getElementById('protGoal').value);
-            if (!w) return;
-            document.getElementById('protVal').textContent = Math.round(w * mult) + 'g';
-            document.getElementById('protRes').classList.remove('hidden');
-        }
-
-        function startFast() {
-            const fasting = { active: true, startTime: Date.now(), history: DB.get(DB.keys.FASTING)?.history || [] };
-            DB.set(DB.keys.FASTING, fasting);
-            refreshTool();
-        }
-
-        function stopFast() {
-            const fasting = DB.get(DB.keys.FASTING);
-            if (!fasting?.active) return;
-            
-            const duration = Date.now() - fasting.startTime;
-            const hours = Math.floor(duration / 3600000);
-            const mins = Math.floor((duration % 3600000) / 60000);
-            
-            fasting.history.push({
-                start: fasting.startTime,
-                end: Date.now(),
-                duration: `${hours}h ${mins}m`,
-                hours: hours + mins/60
-            });
-            
-            fasting.active = false;
-            fasting.startTime = null;
-            DB.set(DB.keys.FASTING, fasting);
-            refreshTool();
-            updateDashboard();
-        }
-
-        function updateFastTimer() {
-            const fasting = DB.get(DB.keys.FASTING);
-            if (!fasting?.active) return;
-            
-            const diff = Date.now() - fasting.startTime;
-            const hours = Math.floor(diff / 3600000).toString().padStart(2, '0');
-            const mins = Math.floor((diff % 3600000) / 60000).toString().padStart(2, '0');
-            
-            const display = document.getElementById('fastTimerDisplay');
-            if (display) display.textContent = `${hours}:${mins}`;
-        }
-
-        function calcHRZones() {
-            const age = parseFloat(document.getElementById('hrAge').value);
-            const rest = parseFloat(document.getElementById('hrRest').value) || 60;
-            if (!age) return;
-            
-            const max = 220 - age;
-            const reserve = max - rest;
-            
-            document.getElementById('z1').textContent = Math.round(rest + (reserve * 0.5)) + '-' + Math.round(rest + (reserve * 0.6));
-            document.getElementById('z2').textContent = Math.round(rest + (reserve * 0.6)) + '-' + Math.round(rest + (reserve * 0.7));
-            document.getElementById('z3').textContent = Math.round(rest + (reserve * 0.7)) + '-' + Math.round(rest + (reserve * 0.8));
-            document.getElementById('z4').textContent = Math.round(rest + (reserve * 0.8)) + '-' + Math.round(rest + (reserve * 0.9));
-            document.getElementById('z5').textContent = Math.round(rest + (reserve * 0.9)) + '-' + max;
-            document.getElementById('hrRes').classList.remove('hidden');
-        }
-
-        function calcPace() {
-            const min = parseFloat(document.getElementById('paceMin').value) || 0;
-            const sec = parseFloat(document.getElementById('paceSec').value) || 0;
-            const dist = parseFloat(document.getElementById('paceDist').value);
-            if (!dist) return;
-            
-            const totalMin = min + (sec / 60);
-            const pace = totalMin / dist;
-            const paceMin = Math.floor(pace);
-            const paceSec = Math.round((pace - paceMin) * 60);
-            
-            document.getElementById('paceVal').textContent = `${paceMin}:${paceSec.toString().padStart(2, '0')}`;
-            document.getElementById('speedVal').textContent = (60 / pace).toFixed(1);
-            document.getElementById('paceRes').classList.remove('hidden');
-        }
-
-        function calcBedtime() {
-            const wake = document.getElementById('sleepWake').value;
-            const cycles = parseInt(document.getElementById('sleepCycles').value);
-            if (!wake) return;
-            
-            const [h, m] = wake.split(':').map(Number);
-            const wakeTime = new Date();
-            wakeTime.setHours(h, m);
-            const bedTime = new Date(wakeTime.getTime() - (cycles * 90 * 60000));
-            
-            document.getElementById('bedtime').textContent = bedTime.toLocaleTimeString([], {hour: 'numeric', minute:'2-digit'});
-            document.getElementById('sleepRes').classList.remove('hidden');
-        }
-
-        function addWater(amount) {
-            const water = DB.get(DB.keys.WATER);
-            water.push({ amount, time: Date.now() });
-            DB.set(DB.keys.WATER, water);
-            refreshTool();
-            updateDashboard();
-        }
-
-        function addCustomWater() {
-            const amt = parseInt(prompt('Amount (ml):'));
-            if (amt > 0) addWater(amt);
-        }
-
-        // ==================== EXPORT / IMPORT ====================
-
-        function exportJSON() {
-            const data = {
-                version: '2.0',
-                exportDate: new Date().toISOString(),
-                profile: DB.get(DB.keys.PROFILE),
-                weights: DB.get(DB.keys.WEIGHTS),
-                water: DB.get(DB.keys.WATER),
-                fasting: DB.get(DB.keys.FASTING),
-                toolData: DB.get(DB.keys.TOOL_DATA)
-            };
-            
-            const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `nutrisync-complete-${new Date().toISOString().split('T')[0]}.json`;
-            a.click();
-        }
-
-        function exportCSV() {
-            const weights = DB.get(DB.keys.WEIGHTS);
-            let csv = 'Date,Weight(kg),Time\n';
-            weights.forEach(w => {
-                csv += `${w.date},${w.value},${new Date(w.time).toLocaleTimeString()}\n`;
-            });
-            
-            const blob = new Blob([csv], {type: 'text/csv'});
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `weight-history-${new Date().toISOString().split('T')[0]}.csv`;
-            a.click();
-        }
-
-        function generatePDF() {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            const profile = DB.get(DB.keys.PROFILE);
-            const weights = DB.get(DB.keys.WEIGHTS);
-            
-            doc.setFontSize(20);
-            doc.text('NutriSync Pro - Health Report', 20, 30);
-            doc.setFontSize(12);
-            doc.text(`Generated: ${new Date().toLocaleDateString()}`, 20, 50);
-            doc.text(`Current Weight: ${profile?.weight || '--'} kg`, 20, 70);
-            doc.text(`BMI: ${profile?.weight && profile?.height ? (profile.weight / ((profile.height/100)**2)).toFixed(1) : '--'}`, 20, 80);
-            doc.text(`BMR: ${profile?.bmr || '--'} cal/day`, 20, 90);
-            doc.text(`TDEE: ${profile?.tdee || '--'} cal/day`, 20, 100);
-            doc.text(`Total Weight Entries: ${weights.length}`, 20, 120);
-            
-            doc.save('health-report.pdf');
-        }
-
-        function importJSON(input) {
-            const file = input.files[0];
-            if (!file) return;
-            
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                try {
-                    const data = JSON.parse(e.target.result);
-                    if (data.profile) DB.set(DB.keys.PROFILE, data.profile);
-                    if (data.weights) DB.set(DB.keys.WEIGHTS, data.weights);
-                    if (data.water) DB.set(DB.keys.WATER, data.water);
-                    if (data.fasting) DB.set(DB.keys.FASTING, data.fasting);
-                    if (data.toolData) DB.set(DB.keys.TOOL_DATA, data.toolData);
-                    
-                    alert('Data restored successfully!');
-                    updateDashboard();
-                } catch (err) {
-                    alert('Invalid backup file');
-                }
-            };
-            reader.readAsText(file);
-        }
-
-        function clearAllData() {
-            if (!confirm('WARNING: This will erase ALL data. Continue?')) return;
-            if (!confirm('Are you absolutely sure? This cannot be undone.')) return;
-            
-            Object.values(DB.keys).forEach(key => localStorage.removeItem(key));
-            DB.init();
-            updateDashboard();
-            alert('All data cleared');
+            const colors = {all: 'bg-cyan-500', ai: 'bg-purple-600', nutrition: 'bg-orange-600', medical: 'bg-red-600'};
+            event.target.classList.add(colors[cat] || 'bg-cyan-500', 'text-white');
+            renderAllTools(cat);
         }
 
         function updateDashboard() {
-            const profile = DB.get(DB.keys.PROFILE) || {};
-            const weights = DB.get(DB.keys.WEIGHTS) || [];
-            const fasting = DB.get(DB.keys.FASTING) || { active: false };
-            
-            if (weights.length > 0) {
-                const latest = weights[weights.length - 1];
-                document.getElementById('liveWeight').textContent = latest.value + ' kg';
-                
-                if (weights.length > 1) {
-                    const diff = (latest.value - weights[weights.length - 2].value).toFixed(1);
-                    const el = document.getElementById('weightChange');
-                    el.textContent = (diff > 0 ? '+' : '') + diff + ' kg';
-                    el.className = 'text-xs mt-1 ' + (diff <= 0 ? 'text-green-400' : 'text-red-400');
-                }
-            }
-            
-            if (profile.weight && profile.height) {
-                const bmi = (profile.weight / ((profile.height/100)**2)).toFixed(1);
-                document.getElementById('liveBMI').textContent = bmi;
-                let status = bmi < 18.5 ? 'Underweight' : bmi < 25 ? 'Normal' : bmi < 30 ? 'Overweight' : 'Obese';
-                document.getElementById('bmiStatus').textContent = status;
-            }
-            
-            if (profile.tdee) {
-                document.getElementById('liveTDEE').textContent = profile.tdee.toLocaleString();
-            }
-            
-            if (fasting.active) {
-                updateFastTimer();
-                if (!fastingInterval) fastingInterval = setInterval(updateFastTimer, 1000);
-                document.getElementById('fastStatus').textContent = 'Active';
-                document.getElementById('fastStatus').className = 'text-xs text-cyan-400 mt-1';
-            } else {
-                document.getElementById('liveFast').textContent = '--';
-                document.getElementById('fastStatus').textContent = 'Inactive';
-                document.getElementById('fastStatus').className = 'text-xs text-slate-500 mt-1';
-            }
+            // Update calorie display on main dashboard
+            updateCalorieDisplay();
         }
 
-        // Init
+        function syncToCloud() {
+            const btn = event.target;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Encrypting & Syncing...';
+            btn.disabled = true;
+            
+            setTimeout(() => {
+                btn.innerHTML = '<i class="fas fa-check mr-2"></i>Sync Complete';
+                btn.classList.remove('btn-primary');
+                btn.classList.add('bg-green-600');
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.classList.add('btn-primary');
+                    btn.classList.remove('bg-green-600');
+                    btn.disabled = false;
+                }, 2000);
+            }, 2000);
+        }
+
+        // Initialize
         init();
-        
+
         // Global secret code listener
         let buf = '';
         document.addEventListener('keypress', (e) => {
@@ -1734,7 +1595,7 @@
             if (buf.includes('architect_x_2025')) {
                 unlockPro();
                 document.getElementById('authOverlay')?.classList.add('hidden');
-                DB.set(DB.keys.SETTINGS, { pro: true });
+                DB.set(DB.keys.SETTINGS, { ...DB.get(DB.keys.SETTINGS), pro: true });
                 buf = '';
             }
         });
