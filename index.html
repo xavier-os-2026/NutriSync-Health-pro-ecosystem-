@@ -222,6 +222,18 @@ html_code = '''<!DOCTYPE html>
             font-weight: 800;
         }
         
+        .btn-text {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 12px;
+            cursor: pointer;
+            text-decoration: underline;
+            padding: 8px;
+        }
+        
+        .btn-text:hover { color: var(--accent-cyan); }
+        
         /* Inputs */
         .input-group {
             margin-bottom: 16px;
@@ -279,6 +291,21 @@ html_code = '''<!DOCTYPE html>
             font-size: 14px;
             letter-spacing: 2px;
             text-transform: uppercase;
+        }
+        
+        /* Access Code Input - Hidden by default */
+        .access-code-container {
+            display: none;
+            animation: slideDown 0.3s ease;
+        }
+        
+        .access-code-container.show {
+            display: block;
+        }
+        
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         
         .access-code-section {
@@ -783,12 +810,6 @@ html_code = '''<!DOCTYPE html>
         <div class="logo text-gradient">NUTRI SYNC</div>
         <div class="tagline">World-First Health OS</div>
         
-        <div class="access-code-section">
-            <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 8px;">🗝️ Architect Access</div>
-            <div class="secret-key">architect_x_2025</div>
-            <p style="font-size: 12px; color: var(--text-secondary);">Enter above key for unlimited lifetime access</p>
-        </div>
-        
         <div class="card">
             <div class="input-group">
                 <label class="input-label">Email</label>
@@ -798,10 +819,19 @@ html_code = '''<!DOCTYPE html>
                 <label class="input-label">Password</label>
                 <input type="password" id="auth-password" placeholder="••••••••">
             </div>
-            <div class="input-group">
-                <label class="input-label">Access Code (Optional)</label>
-                <input type="text" id="access-code" placeholder="Enter architect_x_2025">
+            
+            <!-- Hidden Access Code Section -->
+            <div id="access-code-toggle" style="text-align: center; margin-bottom: 16px;">
+                <button class="btn-text" onclick="toggleAccessCode()">Have an access code?</button>
             </div>
+            
+            <div id="access-code-section" class="access-code-container">
+                <div class="input-group">
+                    <label class="input-label">Access Code</label>
+                    <input type="text" id="access-code" placeholder="Enter your code">
+                </div>
+            </div>
+            
             <button class="btn" onclick="handleAuth()">Access Platform</button>
             <button class="btn btn-secondary mt-4" onclick="showStripeModal()">$15/Month Pro Membership</button>
         </div>
@@ -1370,6 +1400,15 @@ html_code = '''<!DOCTYPE html>
             }
         };
         
+        // Toggle Access Code Input
+        function toggleAccessCode() {
+            const section = document.getElementById('access-code-section');
+            section.classList.toggle('show');
+            if (section.classList.contains('show')) {
+                document.getElementById('access-code').focus();
+            }
+        }
+        
         // Auth Handler
         function handleAuth() {
             const email = document.getElementById('auth-email').value;
@@ -1381,7 +1420,7 @@ html_code = '''<!DOCTYPE html>
                 return;
             }
             
-            // Check architect access code
+            // Check architect access code - Hidden from view but functional
             if (accessCode === 'architect_x_2025') {
                 isPro = true;
                 localStorage.setItem('nutrisync_access', 'lifetime');
