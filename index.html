@@ -1,538 +1,1792 @@
-<!DOCTYPE html>
+html_code = '''<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#0f172a">
-    <title>NutriSync AI | Access Portal</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NutriSync Pro | World-First Health OS</title>
+    <script src="https://js.stripe.com/v3/"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        :root {
+            --bg-dark: #0a0a0f;
+            --bg-card: #15151f;
+            --accent-cyan: #00f0ff;
+            --accent-purple: #b829dd;
+            --accent-pink: #ff2a6d;
+            --accent-lime: #39ff14;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0b0;
+            --gradient-1: linear-gradient(135deg, #00f0ff 0%, #b829dd 100%);
+            --gradient-2: linear-gradient(45deg, #ff2a6d 0%, #ff8c00 100%);
+            --glass: rgba(255, 255, 255, 0.05);
+        }
         
-        * { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
         
-        body { background: #020617; color: #e2e8f0; overflow-x: hidden; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
         
-        .glass {
-            background: rgba(15, 23, 42, 0.8);
+        /* Animated Background */
+        .bg-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(0, 240, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 240, 255, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            z-index: -2;
+            animation: gridMove 20s linear infinite;
+        }
+        
+        @keyframes gridMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+        
+        .glow-orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.4;
+            z-index: -1;
+            animation: float 10s ease-in-out infinite;
+        }
+        
+        .orb-1 { width: 400px; height: 400px; background: var(--accent-purple); top: -100px; right: -100px; }
+        .orb-2 { width: 300px; height: 300px; background: var(--accent-cyan); bottom: -50px; left: -50px; animation-delay: 5s; }
+        
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(30px, -30px) scale(1.1); }
+        }
+        
+        /* Typography */
+        h1, h2, h3 { font-family: 'Space Grotesk', sans-serif; font-weight: 700; }
+        .text-gradient { background: var(--gradient-1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .text-gradient-2 { background: var(--gradient-2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        
+        /* Navigation */
+        .nav-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(10, 10, 15, 0.9);
             backdrop-filter: blur(20px);
-            border: 1px solid rgba(51, 65, 85, 0.5);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-around;
+            z-index: 1000;
+            transform: translateY(100px);
+            transition: transform 0.3s ease;
         }
         
-        .input-field {
-            background: rgba(30, 41, 59, 0.9);
-            border: 2px solid rgba(71, 85, 105, 0.8);
-            color: white;
-            width: 100%;
-            padding: 16px;
-            border-radius: 12px;
-            font-size: 16px;
-            transition: all 0.3s;
-        }
+        .nav-container.active { transform: translateY(0); }
         
-        .input-field:focus {
-            border-color: #f59e0b;
-            box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.2);
-            outline: none;
-        }
-        
-        .btn-gold {
-            background: linear-gradient(135deg, #f59e0b, #d97706);
-            color: white;
-            font-weight: 800;
-            padding: 16px 32px;
-            border-radius: 12px;
-            border: none;
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
             cursor: pointer;
-            width: 100%;
-            font-size: 16px;
-            transition: all 0.2s;
-            box-shadow: 0 4px 20px rgba(245, 158, 11, 0.4);
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            padding: 8px 16px;
+            border-radius: 12px;
+            transition: all 0.3s;
+            color: var(--text-secondary);
         }
         
-        .btn-gold:hover { 
-            transform: translateY(-2px); 
-            box-shadow: 0 6px 30px rgba(245, 158, 11, 0.6); 
+        .nav-item:hover, .nav-item.active {
+            color: var(--accent-cyan);
+            background: rgba(0, 240, 255, 0.1);
         }
         
-        .btn-gold:active { transform: scale(0.98); }
+        .nav-icon { font-size: 24px; }
+        .nav-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
         
-        .btn-primary {
-            background: linear-gradient(135deg, #0891b2, #2563eb);
+        /* Pages */
+        .page {
+            display: none;
+            padding: 20px;
+            padding-bottom: 100px;
+            max-width: 480px;
+            margin: 0 auto;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .page.active { display: block; }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Cards */
+        .card {
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 16px;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 240, 255, 0.1);
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        
+        .card-title {
+            font-size: 18px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        /* Buttons */
+        .btn {
+            background: var(--gradient-1);
+            border: none;
+            padding: 14px 28px;
+            border-radius: 12px;
             color: white;
             font-weight: 700;
-            padding: 16px;
-            border-radius: 12px;
-            border: none;
             cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 14px;
             width: 100%;
-            font-size: 16px;
-        }
-        
-        .access-portal {
-            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(217, 119, 6, 0.05));
-            border: 2px solid rgba(245, 158, 11, 0.4);
-            border-radius: 20px;
-            padding: 40px 30px;
-            text-align: center;
             position: relative;
             overflow: hidden;
         }
         
-        .access-portal::before {
+        .btn::before {
             content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            transition: 0.5s;
+        }
+        
+        .btn:hover::before { left: 100%; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(184, 41, 221, 0.4); }
+        
+        .btn-secondary {
+            background: transparent;
+            border: 2px solid var(--accent-cyan);
+            color: var(--accent-cyan);
+        }
+        
+        .btn-pro {
+            background: var(--gradient-2);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-pro::after {
+            content: 'PRO';
+            position: absolute;
+            top: 4px;
+            right: -20px;
+            background: white;
+            color: var(--accent-pink);
+            font-size: 8px;
+            padding: 2px 20px;
+            transform: rotate(45deg);
+            font-weight: 800;
+        }
+        
+        /* Inputs */
+        .input-group {
+            margin-bottom: 16px;
+        }
+        
+        .input-label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 14px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: white;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.2);
+        }
+        
+        /* Auth Page */
+        .auth-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 20px;
+            max-width: 480px;
+            margin: 0 auto;
+        }
+        
+        .logo {
+            font-size: 48px;
+            text-align: center;
+            margin-bottom: 8px;
+            letter-spacing: -2px;
+        }
+        
+        .tagline {
+            text-align: center;
+            color: var(--text-secondary);
+            margin-bottom: 40px;
+            font-size: 14px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        
+        .access-code-section {
+            background: linear-gradient(135deg, rgba(0, 240, 255, 0.1), rgba(184, 41, 221, 0.1));
+            border: 1px solid var(--accent-cyan);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+        
+        .secret-key {
+            font-family: 'Space Grotesk', monospace;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 12px;
+            border-radius: 8px;
+            color: var(--accent-lime);
+            font-size: 18px;
+            letter-spacing: 2px;
+            margin: 12px 0;
+            border: 1px dashed var(--accent-lime);
+        }
+        
+        /* Dashboard Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-box {
+            background: var(--glass);
+            border-radius: 16px;
+            padding: 16px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .stat-value {
+            font-size: 32px;
+            font-weight: 800;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .stat-label {
+            font-size: 11px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 4px;
+        }
+        
+        /* Progress Ring */
+        .progress-ring-container {
+            display: flex;
+            justify-content: center;
+            margin: 24px 0;
+        }
+        
+        .progress-ring {
+            position: relative;
+            width: 200px;
+            height: 200px;
+        }
+        
+        .progress-ring svg {
+            transform: rotate(-90deg);
+        }
+        
+        .progress-ring-bg {
+            fill: none;
+            stroke: rgba(255, 255, 255, 0.1);
+            stroke-width: 12;
+        }
+        
+        .progress-ring-fill {
+            fill: none;
+            stroke: url(#gradient);
+            stroke-width: 12;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 1s ease;
+            filter: drop-shadow(0 0 10px rgba(0, 240, 255, 0.5));
+        }
+        
+        .progress-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+        
+        .progress-value {
+            font-size: 48px;
+            font-weight: 800;
+            color: var(--accent-cyan);
+        }
+        
+        .progress-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        /* Food Scanner */
+        .scanner-container {
+            position: relative;
+            height: 300px;
+            background: #000;
+            border-radius: 20px;
+            overflow: hidden;
+            margin-bottom: 16px;
+            border: 2px solid var(--accent-cyan);
+        }
+        
+        .scanner-overlay {
             position: absolute;
             top: 0;
             left: 0;
             right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, #f59e0b, #d97706);
+            bottom: 0;
+            background: linear-gradient(0deg, rgba(0,240,255,0.2) 0%, transparent 50%, rgba(0,240,255,0.2) 100%);
+            animation: scan 2s linear infinite;
         }
         
-        .hidden { display: none !important; }
-        
-        .shake { animation: shake 0.5s; }
-        
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-10px); }
-            75% { transform: translateX(10px); }
+        @keyframes scan {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100%); }
         }
         
-        .success-pulse { animation: successPulse 0.5s; }
-        
-        @keyframes successPulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
+        .scanner-frame {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 200px;
+            height: 200px;
+            border: 2px solid var(--accent-cyan);
+            border-radius: 20px;
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.5);
         }
         
-        .error-message {
-            color: #ef4444;
-            font-size: 14px;
-            margin-top: 12px;
-            font-weight: 600;
-            display: none;
+        .corner {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border: 3px solid var(--accent-cyan);
         }
+        .corner-tl { top: -2px; left: -2px; border-right: none; border-bottom: none; }
+        .corner-tr { top: -2px; right: -2px; border-left: none; border-bottom: none; }
+        .corner-bl { bottom: -2px; left: -2px; border-right: none; border-top: none; }
+        .corner-br { bottom: -2px; right: -2px; border-left: none; border-top: none; }
         
-        .tool-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-        }
-        
-        @media (min-width: 640px) {
-            .tool-grid { grid-template-columns: repeat(4, 1fr); }
-        }
-        
-        .tool-btn {
-            background: rgba(30, 41, 59, 0.6);
-            border: 1px solid rgba(71, 85, 105, 0.3);
+        /* Food Log */
+        .food-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.03);
             border-radius: 12px;
-            padding: 16px 8px;
-            text-align: center;
-            height: 100px;
+            margin-bottom: 8px;
+            border-left: 3px solid var(--accent-cyan);
+        }
+        
+        .food-info h4 { margin-bottom: 4px; }
+        .food-info p { font-size: 12px; color: var(--text-secondary); }
+        .food-cal { font-weight: 700; color: var(--accent-cyan); }
+        
+        /* Exercise Cards */
+        .exercise-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        
+        .exercise-card {
+            aspect-ratio: 1;
+            background: var(--glass);
+            border-radius: 16px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             gap: 8px;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.3s;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
         }
         
-        .tool-btn:hover {
-            background: rgba(51, 65, 85, 0.8);
-            border-color: rgba(6, 182, 212, 0.5);
-            transform: translateY(-2px);
+        .exercise-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--gradient-1);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .exercise-card:hover::before { opacity: 0.2; }
+        .exercise-card:hover { transform: scale(1.05); border-color: var(--accent-cyan); }
+        
+        .exercise-icon { font-size: 32px; z-index: 1; }
+        .exercise-name { font-weight: 700; font-size: 14px; z-index: 1; }
+        
+        /* Breathing Exercise */
+        .breathing-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 400px;
+            position: relative;
+        }
+        
+        .breath-circle {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: radial-gradient(circle, var(--accent-cyan) 0%, transparent 70%);
+            opacity: 0.3;
+            animation: breathe 8s ease-in-out infinite;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        @keyframes breathe {
+            0%, 100% { transform: scale(0.8); opacity: 0.3; }
+            50% { transform: scale(1.5); opacity: 0.6; }
+        }
+        
+        .breath-text {
+            position: absolute;
+            font-size: 24px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            animation: breathText 8s ease-in-out infinite;
+        }
+        
+        @keyframes breathText {
+            0%, 100% { content: "Inhale"; opacity: 0; }
+            25% { content: "Hold"; opacity: 1; }
+            50% { content: "Exhale"; opacity: 1; }
+            75% { content: "Hold"; opacity: 1; }
+        }
+        
+        /* AI Coach Chat */
+        .chat-container {
+            height: 400px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 16px;
+            padding-right: 8px;
+        }
+        
+        .chat-message {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 16px;
+            font-size: 14px;
+            line-height: 1.5;
+            animation: messageSlide 0.3s ease;
+        }
+        
+        @keyframes messageSlide {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .chat-ai {
+            align-self: flex-start;
+            background: var(--glass);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom-left-radius: 4px;
+        }
+        
+        .chat-user {
+            align-self: flex-end;
+            background: var(--gradient-1);
+            border-bottom-right-radius: 4px;
+        }
+        
+        .chat-input-container {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .chat-input {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 12px 20px;
+            color: white;
+            outline: none;
+        }
+        
+        .chat-send {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: var(--gradient-1);
+            border: none;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+        
+        /* Feature Tags */
+        .feature-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 12px;
+            background: rgba(57, 255, 20, 0.1);
+            border: 1px solid var(--accent-lime);
+            border-radius: 20px;
+            font-size: 11px;
+            color: var(--accent-lime);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .pro-lock {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .pro-lock::after {
+            content: '🔒';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+            background: rgba(0, 0, 0, 0.8);
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .pro-lock.locked::after { opacity: 1; }
+        
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .modal.active { display: flex; }
+        
+        .modal-content {
+            background: var(--bg-card);
+            border-radius: 24px;
+            padding: 32px;
+            max-width: 400px;
+            width: 100%;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+        
+        .modal-title {
+            font-size: 24px;
+            margin-bottom: 16px;
+        }
+        
+        /* Calculator Results */
+        .calc-result {
+            background: var(--gradient-1);
+            padding: 20px;
+            border-radius: 16px;
+            text-align: center;
+            margin-top: 16px;
+        }
+        
+        .calc-value {
+            font-size: 36px;
+            font-weight: 800;
+            color: white;
+        }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent-cyan);
+            border-radius: 3px;
+        }
+        
+        /* Utility Classes */
+        .hidden { display: none !important; }
+        .text-center { text-align: center; }
+        .mb-4 { margin-bottom: 16px; }
+        .mt-4 { margin-top: 16px; }
+        .flex { display: flex; }
+        .flex-col { flex-direction: column; }
+        .gap-2 { gap: 8px; }
+        .gap-4 { gap: 16px; }
+        .items-center { align-items: center; }
+        .justify-between { justify-content: space-between; }
+        .w-full { width: 100%; }
+        
+        /* Video Container */
+        .video-container {
+            position: relative;
+            padding-bottom: 56.25%;
+            height: 0;
+            overflow: hidden;
+            border-radius: 16px;
+            background: #000;
+            margin-top: 12px;
+        }
+        
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
+        /* Notification */
+        .notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--accent-cyan);
+            padding: 16px 24px;
+            border-radius: 12px;
+            z-index: 3000;
+            transition: transform 0.3s ease;
+            font-weight: 600;
+        }
+        
+        .notification.show { transform: translateX(-50%) translateY(0); }
+        
+        /* Pulse Animation for Live Features */
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(0, 240, 255, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(0, 240, 255, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 240, 255, 0); }
         }
     </style>
 </head>
-<body class="bg-slate-950">
-
-    <!-- AUTH OVERLAY -->
-    <div id="authOverlay" class="fixed inset-0 z-[300] bg-slate-950 overflow-y-auto p-4">
-        <div class="min-h-screen flex flex-col items-center justify-center max-w-md mx-auto">
-            
-            <!-- Logo -->
-            <div class="text-center mb-8">
-                <div class="w-24 h-24 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-4xl shadow-2xl shadow-cyan-500/30">
-                    <i class="fas fa-dna text-white"></i>
-                </div>
-                <h1 class="text-4xl font-bold mb-2 bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">NutriSync AI</h1>
-                <p class="text-slate-400">177 World-First Health Modules</p>
+<body>
+    <div class="bg-grid"></div>
+    <div class="glow-orb orb-1"></div>
+    <div class="glow-orb orb-2"></div>
+    
+    <svg width="0" height="0">
+        <defs>
+            <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style="stop-color:#00f0ff;stop-opacity:1" />
+                <stop offset="100%" style="stop-color:#b829dd;stop-opacity:1" />
+            </linearGradient>
+        </defs>
+    </svg>
+    
+    <!-- Notification -->
+    <div id="notification" class="notification"></div>
+    
+    <!-- Auth Page -->
+    <div id="auth-page" class="auth-container">
+        <div class="logo text-gradient">NUTRI SYNC</div>
+        <div class="tagline">World-First Health OS</div>
+        
+        <div class="access-code-section">
+            <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 8px;">🗝️ Architect Access</div>
+            <div class="secret-key">architect_x_2025</div>
+            <p style="font-size: 12px; color: var(--text-secondary);">Enter above key for unlimited lifetime access</p>
+        </div>
+        
+        <div class="card">
+            <div class="input-group">
+                <label class="input-label">Email</label>
+                <input type="email" id="auth-email" placeholder="you@example.com">
             </div>
-
-            <!-- STEP 1: Choose Entry Method -->
-            <div id="entryChoice" class="w-full space-y-4">
-                <div class="glass rounded-2xl p-6 border border-slate-700">
-                    <h2 class="text-xl font-bold text-center mb-6 text-white">Choose Access Method</h2>
-                    
-                    <button onclick="showEmailSignup()" class="btn-primary mb-3">
-                        <i class="fas fa-envelope mr-2"></i>Sign Up with Email
-                    </button>
-                    
-                    <div class="relative my-6">
-                        <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-slate-700"></div></div>
-                        <div class="relative flex justify-center text-sm"><span class="px-2 bg-slate-900 text-slate-400">OR</span></div>
-                    </div>
-                    
-                    <button onclick="showAccessCodeEntry()" class="btn-gold">
-                        <i class="fas fa-key mr-2"></i>Enter Access Code
-                    </button>
-                    
-                    <div class="mt-4 text-center">
-                        <button onclick="showStripeSubscribe()" class="text-cyan-400 text-sm hover:text-cyan-300 underline">
-                            Subscribe $15/month
-                        </button>
-                    </div>
-                </div>
+            <div class="input-group">
+                <label class="input-label">Password</label>
+                <input type="password" id="auth-password" placeholder="••••••••">
             </div>
-
-            <!-- STEP 2: Access Code Entry -->
-            <div id="accessCodeSection" class="w-full hidden">
-                <div class="access-portal">
-                    <div class="mb-6">
-                        <i class="fas fa-crown text-5xl text-amber-400 mb-4 drop-shadow-lg"></i>
-                        <h2 class="text-2xl font-bold text-amber-400 mb-2">ARCHITECT ACCESS</h2>
-                        <p class="text-slate-300 text-sm">Enter your unlimited lifetime access code</p>
-                    </div>
-                    
-                    <div class="space-y-4">
-                        <input 
-                            type="text" 
-                            id="accessCodeInput" 
-                            class="input-field text-center tracking-widest font-bold text-lg" 
-                            placeholder="ENTER CODE"
-                            autocomplete="off"
-                            onkeyup="if(event.key==='Enter')verifyAccessCode()"
-                        >
-                        
-                        <button onclick="verifyAccessCode()" class="btn-gold">
-                            <i class="fas fa-unlock-alt mr-2"></i>UNLOCK UNLIMITED
-                        </button>
-                        
-                        <div id="accessError" class="error-message">
-                            <i class="fas fa-exclamation-circle mr-1"></i>
-                            Invalid access code. Please try again.
-                        </div>
-                        
-                        <button onclick="backToEntry()" class="text-slate-400 text-sm hover:text-white mt-4 underline">
-                            ← Back to options
-                        </button>
-                    </div>
-                </div>
+            <div class="input-group">
+                <label class="input-label">Access Code (Optional)</label>
+                <input type="text" id="access-code" placeholder="Enter architect_x_2025">
             </div>
-
-            <!-- STEP 3: Email Signup -->
-            <div id="emailSection" class="w-full hidden">
-                <div class="glass rounded-2xl p-6 border border-slate-700">
-                    <h2 class="text-xl font-bold text-center mb-6">Create Account</h2>
-                    <input type="email" id="signupEmail" class="input-field mb-3" placeholder="Email address">
-                    <input type="password" id="signupPassword" class="input-field mb-4" placeholder="Password">
-                    <button onclick="createAccount()" class="btn-primary mb-3">Create Account</button>
-                    <button onclick="backToEntry()" class="text-slate-400 text-sm hover:text-white underline w-full">Back</button>
-                </div>
-            </div>
-
-            <!-- STEP 4: Stripe Subscription -->
-            <div id="stripeSection" class="w-full hidden">
-                <div class="glass rounded-2xl p-6 border border-purple-500/30">
-                    <div class="text-center mb-6">
-                        <div class="text-3xl font-bold text-white mb-1">$15<span class="text-lg text-slate-400">/month</span></div>
-                        <div class="text-sm text-slate-400">Full access to all 177 modules</div>
-                    </div>
-                    <button onclick="processStripePayment()" class="btn-primary bg-gradient-to-r from-purple-600 to-blue-600 mb-3">
-                        <i class="fab fa-stripe mr-2"></i>Start Subscription
-                    </button>
-                    <button onclick="backToEntry()" class="text-slate-400 text-sm hover:text-white underline w-full">Back</button>
-                </div>
-            </div>
-
+            <button class="btn" onclick="handleAuth()">Access Platform</button>
+            <button class="btn btn-secondary mt-4" onclick="showStripeModal()">$15/Month Pro Membership</button>
+        </div>
+        
+        <div style="text-align: center; margin-top: 24px; font-size: 12px; color: var(--text-secondary);">
+            <p>26 World-First Features • AI-Powered • Unlimited Potential</p>
         </div>
     </div>
-
-    <!-- MAIN APP (Hidden until unlocked) -->
-    <div id="mainApp" class="hidden">
-        <!-- Header -->
-        <header class="sticky top-0 z-50 glass border-b border-slate-800 px-4 py-3 flex items-center justify-between">
-            <button onclick="goBack()" id="backBtn" class="hidden w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-white">
-                <i class="fas fa-arrow-left"></i>
-            </button>
-            <h1 id="headerTitle" class="font-bold text-xl text-white flex-1 ml-3">NutriSync AI</h1>
-            <div class="flex gap-2">
-                <div id="architectBadge" class="hidden bg-amber-500 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center">
-                    <i class="fas fa-crown mr-1"></i> ARCHITECT
+    
+    <!-- Main App -->
+    <div id="main-app" class="hidden">
+        <!-- Dashboard Page -->
+        <div id="page-dashboard" class="page active">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                <div>
+                    <h1 class="text-gradient" style="font-size: 28px;">Dashboard</h1>
+                    <p style="color: var(--text-secondary); font-size: 14px;">Welcome back, Architect</p>
                 </div>
-                <button onclick="logout()" class="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-white">
-                    <i class="fas fa-sign-out-alt text-sm"></i>
+                <div class="feature-tag">PRO UNLOCKED</div>
+            </div>
+            
+            <div class="progress-ring-container">
+                <div class="progress-ring">
+                    <svg width="200" height="200">
+                        <circle class="progress-ring-bg" cx="100" cy="100" r="88"></circle>
+                        <circle id="calorie-ring" class="progress-ring-fill" cx="100" cy="100" r="88"
+                            stroke-dasharray="553" stroke-dashoffset="150"></circle>
+                    </svg>
+                    <div class="progress-text">
+                        <div class="progress-value" id="calories-remaining">1,840</div>
+                        <div class="progress-label">Remaining</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="stat-value" id="consumed-cals">450</div>
+                    <div class="stat-label">Consumed</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="burned-cals">220</div>
+                    <div class="stat-label">Burned</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value">2.1k</div>
+                    <div class="stat-label">Steps</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value">85g</div>
+                    <div class="stat-label">Protein</div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">🧬 AI Metabolic Score</div>
+                    <span class="feature-tag">World-First #1</span>
+                </div>
+                <div style="font-size: 48px; font-weight: 800; text-align: center; margin: 20px 0;">
+                    <span class="text-gradient">94/100</span>
+                </div>
+                <p style="text-align: center; color: var(--text-secondary); font-size: 14px;">
+                    Your metabolic flexibility is optimal. Circadian rhythm synced.
+                </p>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">🎯 Today's Focus</div>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: rgba(255,255,255,0.03); border-radius: 12px;">
+                        <div style="width: 40px; height: 40px; background: var(--gradient-1); border-radius: 10px; display: flex; align-items: center; justify-content: center;">💧</div>
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600;">Hydration Intelligence</div>
+                            <div style="font-size: 12px; color: var(--text-secondary);">World-First #13</div>
+                        </div>
+                        <div style="font-weight: 700; color: var(--accent-cyan);">2.4L</div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: rgba(255,255,255,0.03); border-radius: 12px;">
+                        <div style="width: 40px; height: 40px; background: var(--gradient-2); border-radius: 10px; display: flex; align-items: center; justify-content: center;">🧘</div>
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600;">Stress-Adapted Nutrition</div>
+                            <div style="font-size: 12px; color: var(--text-secondary);">World-First #7</div>
+                        </div>
+                        <div style="font-weight: 700; color: var(--accent-pink);">Low</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card" style="background: linear-gradient(135deg, rgba(255,42,109,0.1), rgba(255,140,0,0.1)); border-color: var(--accent-pink);">
+                <div class="card-header">
+                    <div class="card-title text-gradient-2">🔮 Predictive Analytics</div>
+                    <span class="feature-tag">World-First #3</span>
+                </div>
+                <p style="font-size: 14px; line-height: 1.6; margin-bottom: 12px;">
+                    AI predicts 87% chance of emotional eating trigger at 3 PM due to meeting schedule. Pre-loaded macro-balanced snack recommended.
+                </p>
+                <button class="btn" style="font-size: 12px; padding: 8px 16px;">View Prevention Strategy</button>
+            </div>
+        </div>
+        
+        <!-- Food Page -->
+        <div id="page-food" class="page">
+            <h1 class="text-gradient" style="font-size: 28px; margin-bottom: 20px;">Nutrition OS</h1>
+            
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">📷 AI Food Scanner</div>
+                    <span class="feature-tag">World-First #18</span>
+                </div>
+                <div class="scanner-container" id="scanner-view">
+                    <video id="camera-feed" style="width: 100%; height: 100%; object-fit: cover;" autoplay playsinline></video>
+                    <div class="scanner-overlay"></div>
+                    <div class="scanner-frame">
+                        <div class="corner corner-tl"></div>
+                        <div class="corner corner-tr"></div>
+                        <div class="corner corner-bl"></div>
+                        <div class="corner corner-br"></div>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn" onclick="toggleScanner()">📷 Scan Food</button>
+                    <button class="btn btn-secondary" onclick="simulateScan()">🤖 AI Analyze</button>
+                </div>
+                <div id="scan-result" class="hidden" style="margin-top: 16px; padding: 16px; background: rgba(0,240,255,0.1); border-radius: 12px; border: 1px solid var(--accent-cyan);">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="font-weight: 700; font-size: 18px;">Grilled Chicken Salad</div>
+                            <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">Confidence: 98.4%</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 24px; font-weight: 800; color: var(--accent-cyan);">420</div>
+                            <div style="font-size: 11px; color: var(--text-secondary);">kcal</div>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 8px; margin-top: 12px; font-size: 12px;">
+                        <span style="padding: 4px 8px; background: rgba(255,255,255,0.1); border-radius: 4px;">P: 45g</span>
+                        <span style="padding: 4px 8px; background: rgba(255,255,255,0.1); border-radius: 4px;">C: 12g</span>
+                        <span style="padding: 4px 8px; background: rgba(255,255,255,0.1); border-radius: 4px;">F: 18g</span>
+                    </div>
+                    <button class="btn mt-4" onclick="addScannedFood()">Add to Log</button>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">⌨️ Smart Text Input</div>
+                    <span class="feature-tag">Voice Ready</span>
+                </div>
+                <div class="input-group">
+                    <input type="text" id="food-input" placeholder="Describe your meal (e.g., '2 eggs and toast')" 
+                           style="margin-bottom: 8px;" onkeypress="handleFoodInput(event)">
+                </div>
+                <button class="btn btn-secondary" onclick="analyzeTextFood()">Analyze with AI</button>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">📊 Today's Log</div>
+                    <button class="btn" style="width: auto; padding: 8px 16px; font-size: 12px;" onclick="showAddFoodModal()">+ Add</button>
+                </div>
+                <div id="food-log-list">
+                    <div class="food-item">
+                        <div class="food-info">
+                            <h4>Oatmeal with Berries</h4>
+                            <p>Breakfast • 8:30 AM</p>
+                        </div>
+                        <div class="food-cal">340 kcal</div>
+                    </div>
+                    <div class="food-item">
+                        <div class="food-info">
+                            <h4>Protein Shake</h4>
+                            <p>Snack • 11:00 AM</p>
+                        </div>
+                        <div class="food-cal">110 kcal</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card" style="background: linear-gradient(135deg, rgba(0,240,255,0.1), rgba(184,41,221,0.1));">
+                <div class="card-header">
+                    <div class="card-title">🧬 DNA-Based Macro Split</div>
+                    <span class="feature-tag">World-First #10</span>
+                </div>
+                <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 12px;">
+                    Optimized for your genetic profile: AMY1 gene variant detected. Higher carb tolerance allocated.
+                </p>
+                <div style="display: flex; gap: 8px;">
+                    <div style="flex: 1; text-align: center; padding: 12px; background: rgba(0,0,0,0.3); border-radius: 8px;">
+                        <div style="font-size: 20px; font-weight: 700; color: var(--accent-cyan);">40%</div>
+                        <div style="font-size: 10px; color: var(--text-secondary);">Carbs</div>
+                    </div>
+                    <div style="flex: 1; text-align: center; padding: 12px; background: rgba(0,0,0,0.3); border-radius: 8px;">
+                        <div style="font-size: 20px; font-weight: 700; color: var(--accent-pink);">35%</div>
+                        <div style="font-size: 10px; color: var(--text-secondary);">Protein</div>
+                    </div>
+                    <div style="flex: 1; text-align: center; padding: 12px; background: rgba(0,0,0,0.3); border-radius: 8px;">
+                        <div style="font-size: 20px; font-weight: 700; color: var(--accent-lime);">25%</div>
+                        <div style="font-size: 10px; color: var(--text-secondary);">Fats</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Exercise Page -->
+        <div id="page-exercise" class="page">
+            <h1 class="text-gradient" style="font-size: 28px; margin-bottom: 20px;">Movement Lab</h1>
+            
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">⚡ Micro-Workout Generator</div>
+                    <span class="feature-tag">World-First #4</span>
+                </div>
+                <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 16px;">
+                    AI detects 12-minute gap in your calendar. Generate optimized movement?
+                </p>
+                <button class="btn pulse" onclick="generateMicroWorkout()">Generate 12-Min HIIT</button>
+                <div id="micro-workout-result" class="hidden mt-4" style="padding: 16px; background: rgba(57,255,20,0.1); border-radius: 12px; border: 1px solid var(--accent-lime);">
+                    <div style="font-weight: 700; margin-bottom: 8px;">🔥 Desk Break Destroyer</div>
+                    <ul style="font-size: 14px; color: var(--text-secondary); padding-left: 20px; line-height: 1.8;">
+                        <li>3 min: Shadow boxing</li>
+                        <li>3 min: Desk push-ups</li>
+                        <li>3 min: Chair squats</li>
+                        <li>3 min: Stretching</li>
+                    </ul>
+                    <div style="margin-top: 12px; text-align: right; font-weight: 700; color: var(--accent-lime);">~85 kcal</div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">🎯 Exercise Categories</div>
+                </div>
+                <div class="exercise-grid">
+                    <div class="exercise-card" onclick="showExercises('weights')">
+                        <div class="exercise-icon">🏋️</div>
+                        <div class="exercise-name">Weights</div>
+                    </div>
+                    <div class="exercise-card" onclick="showExercises('cardio')">
+                        <div class="exercise-icon">🏃</div>
+                        <div class="exercise-name">Cardio</div>
+                    </div>
+                    <div class="exercise-card" onclick="showExercises('yoga')">
+                        <div class="exercise-icon">🧘</div>
+                        <div class="exercise-name">Yoga</div>
+                    </div>
+                    <div class="exercise-card" onclick="showExercises('taichi')">
+                        <div class="exercise-icon">☯️</div>
+                        <div class="exercise-name">Tai Chi</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="exercise-video-section" class="card hidden">
+                <div class="card-header">
+                    <div class="card-title" id="video-title">Workout Tutorial</div>
+                    <span class="feature-tag">4K HD</span>
+                </div>
+                <div class="video-container">
+                    <iframe id="exercise-video" src="" allowfullscreen></iframe>
+                </div>
+                <div style="margin-top: 12px; display: flex; gap: 8px;">
+                    <button class="btn" style="flex: 1;" onclick="logExercise()">Log Completed</button>
+                    <button class="btn btn-secondary" style="flex: 1;" onclick="hideVideo()">Close</button>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">📈 Volume Tracker</div>
+                    <span class="feature-tag">World-First #20</span>
+                </div>
+                <canvas id="volumeChart" height="200"></canvas>
+            </div>
+        </div>
+        
+        <!-- Breathing Page -->
+        <div id="page-breathing" class="page">
+            <h1 class="text-gradient" style="font-size: 28px; margin-bottom: 20px;">Breath OS</h1>
+            
+            <div class="card" style="min-height: 500px;">
+                <div class="card-header">
+                    <div class="card-title">🌬️ Smart Biofeedback Breathing</div>
+                    <span class="feature-tag">World-First #19</span>
+                </div>
+                
+                <div class="breathing-container">
+                    <div class="breath-circle">
+                        <div style="width: 100px; height: 100px; border-radius: 50%; background: var(--accent-cyan); opacity: 0.5;"></div>
+                    </div>
+                    <div class="breath-text" id="breath-instruction">INHALE</div>
+                    <div style="margin-top: 40px; text-align: center;">
+                        <div style="font-size: 48px; font-weight: 800; color: var(--accent-cyan);" id="breath-timer">4</div>
+                        <div style="font-size: 12px; color: var(--text-secondary); margin-top: 8px;">SECONDS</div>
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: 8px; margin-top: 32px;">
+                    <button class="btn" onclick="setBreathingMode('relax')">Relax</button>
+                    <button class="btn btn-secondary" onclick="setBreathingMode('energy')">Energy</button>
+                    <button class="btn btn-secondary" onclick="setBreathingMode('sleep')">Sleep</button>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">🧘 Guided Sessions</div>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <div style="padding: 16px; background: rgba(255,255,255,0.03); border-radius: 12px; display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="startGuided('box')">
+                        <div>
+                            <div style="font-weight: 600;">Box Breathing</div>
+                            <div style="font-size: 12px; color: var(--text-secondary);">Navy SEAL technique • 5 min</div>
+                        </div>
+                        <div style="color: var(--accent-cyan);">▶</div>
+                    </div>
+                    <div style="padding: 16px; background: rgba(255,255,255,0.03); border-radius: 12px; display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="startGuided('478')">
+                        <div>
+                            <div style="font-weight: 600;">4-7-8 Technique</div>
+                            <div style="font-size: 12px; color: var(--text-secondary);">Sleep induction • 4 min</div>
+                        </div>
+                        <div style="color: var(--accent-cyan);">▶</div>
+                    </div>
+                    <div style="padding: 16px; background: rgba(255,255,255,0.03); border-radius: 12px; display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="startGuided('coherent')">
+                        <div>
+                            <div style="font-weight: 600;">Coherent Breathing</div>
+                            <div style="font-size: 12px; color: var(--text-secondary);">HRV optimization • 10 min</div>
+                        </div>
+                        <div style="color: var(--accent-cyan);">▶</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card" style="background: linear-gradient(135deg, rgba(184,41,221,0.1), rgba(0,240,255,0.1));">
+                <div class="card-header">
+                    <div class="card-title">📊 HRV Insights</div>
+                    <span class="feature-tag">World-First #24</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 16px;">
+                    <div style="font-size: 48px; font-weight: 800; color: var(--accent-purple);">62</div>
+                    <div style="flex: 1;">
+                        <div style="font-weight: 600;">ms variability</div>
+                        <div style="font-size: 14px; color: var(--text-secondary); margin-top: 4px;">Optimal recovery state detected. Ready for high-intensity training.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- AI Coach Page -->
+        <div id="page-coach" class="page">
+            <h1 class="text-gradient" style="font-size: 28px; margin-bottom: 20px;">AI Architect</h1>
+            
+            <div class="card" style="background: linear-gradient(135deg, rgba(0,240,255,0.1), rgba(184,41,221,0.1));">
+                <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 16px;">
+                    <div style="width: 60px; height: 60px; border-radius: 50%; background: var(--gradient-1); display: flex; align-items: center; justify-content: center; font-size: 28px;">🤖</div>
+                    <div>
+                        <div style="font-size: 20px; font-weight: 700;">NutriSync AI</div>
+                        <div style="font-size: 12px; color: var(--accent-lime);">● Online • GPT-5 Powered</div>
+                    </div>
+                </div>
+                <p style="font-size: 14px; color: var(--text-secondary); line-height: 1.6;">
+                    Advanced health optimization engine with 26 world-first capabilities. I analyze your biometrics, psychology, and schedule to deliver unprecedented results.
+                </p>
+            </div>
+            
+            <div class="card">
+                <div class="chat-container" id="chat-messages">
+                    <div class="chat-message chat-ai">
+                        Welcome back, Architect. I've analyzed your data from this morning. Your cortisol levels suggest high stress. Shall we adjust today's macro targets to support recovery? 🧬
+                    </div>
+                </div>
+                <div class="chat-input-container">
+                    <input type="text" class="chat-input" id="chat-input" placeholder="Ask your AI coach anything..." onkeypress="handleChat(event)">
+                    <button class="chat-send" onclick="sendMessage()">➤</button>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">🎯 Quick Actions</div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                    <button class="btn btn-secondary" style="font-size: 12px; padding: 12px;" onclick="quickAsk('meal')">Generate Meal</button>
+                    <button class="btn btn-secondary" style="font-size: 12px; padding: 12px;" onclick="quickAsk('workout')">Design Workout</button>
+                    <button class="btn btn-secondary" style="font-size: 12px; padding: 12px;" onclick="quickAsk('mindset')">Mindset Coach</button>
+                    <button class="btn btn-secondary" style="font-size: 12px; padding: 12px;" onclick="quickAsk('analyze')">Analyze Plate</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Calculators Page -->
+        <div id="page-calc" class="page">
+            <h1 class="text-gradient" style="font-size: 28px; margin-bottom: 20px;">Health OS</h1>
+            
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">🧮 Metabolic Calculator</div>
+                    <span class="feature-tag">World-First #1</span>
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Height (cm)</label>
+                    <input type="number" id="calc-height" placeholder="175">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Weight (kg)</label>
+                    <input type="number" id="calc-weight" placeholder="70">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Age</label>
+                    <input type="number" id="calc-age" placeholder="28">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Goal Weight (kg)</label>
+                    <input type="number" id="calc-goal" placeholder="65">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Activity Level</label>
+                    <select id="calc-activity">
+                        <option value="1.2">Sedentary</option>
+                        <option value="1.375">Light Exercise</option>
+                        <option value="1.55">Moderate Exercise</option>
+                        <option value="1.725">Heavy Exercise</option>
+                        <option value="1.9">Athlete</option>
+                    </select>
+                </div>
+                <button class="btn" onclick="calculateMetabolism()">Calculate Optimal Plan</button>
+                <div id="calc-result" class="calc-result hidden">
+                    <div style="font-size: 12px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px;">Daily Target</div>
+                    <div class="calc-value" id="target-calories">2,340</div>
+                    <div style="font-size: 14px; margin-top: 8px; opacity: 0.9;">kcal for optimal loss</div>
+                    <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.2); font-size: 12px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                            <span>Timeline to goal:</span>
+                            <span style="font-weight: 700;">12 weeks</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>Weekly deficit:</span>
+                            <span style="font-weight: 700;">3,500 kcal</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">⚖️ Body Composition</div>
+                    <span class="feature-tag">World-First #21</span>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div class="stat-box" style="background: rgba(0,240,255,0.1);">
+                        <div class="stat-value" style="font-size: 24px;">18.5%</div>
+                        <div class="stat-label">Body Fat</div>
+                    </div>
+                    <div class="stat-box" style="background: rgba(184,41,221,0.1);">
+                        <div class="stat-value" style="font-size: 24px;">57.1</div>
+                        <div class="stat-label">Muscle Mass kg</div>
+                    </div>
+                    <div class="stat-box" style="background: rgba(255,42,109,0.1);">
+                        <div class="stat-value" style="font-size: 24px;">22.9</div>
+                        <div class="stat-label">BMI</div>
+                    </div>
+                    <div class="stat-box" style="background: rgba(57,255,20,0.1);">
+                        <div class="stat-value" style="font-size: 24px;">1,850</div>
+                        <div class="stat-label">BMR</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">🔮 Predictive Weight Tracker</div>
+                    <span class="feature-tag">World-First #22</span>
+                </div>
+                <canvas id="weightChart" height="200"></canvas>
+                <p style="margin-top: 12px; font-size: 12px; color: var(--text-secondary); text-align: center;">
+                    AI prediction based on current adherence rate (94%) and metabolic adaptation
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Navigation -->
+    <nav id="main-nav" class="nav-container">
+        <div class="nav-item active" onclick="navigate('dashboard')">
+            <span class="nav-icon">📊</span>
+            <span class="nav-label">Home</span>
+        </div>
+        <div class="nav-item" onclick="navigate('food')">
+            <span class="nav-icon">🍽️</span>
+            <span class="nav-label">Food</span>
+        </div>
+        <div class="nav-item" onclick="navigate('exercise')">
+            <span class="nav-icon">💪</span>
+            <span class="nav-label">Train</span>
+        </div>
+        <div class="nav-item" onclick="navigate('breathing')">
+            <span class="nav-icon">🧘</span>
+            <span class="nav-label">Breathe</span>
+        </div>
+        <div class="nav-item" onclick="navigate('coach')">
+            <span class="nav-icon">🤖</span>
+            <span class="nav-label">AI</span>
+        </div>
+        <div class="nav-item" onclick="navigate('calc')">
+            <span class="nav-icon">🧮</span>
+            <span class="nav-label">Calc</span>
+        </div>
+    </nav>
+    
+    <!-- Stripe Modal -->
+    <div id="stripe-modal" class="modal">
+        <div class="modal-content">
+            <h2 class="modal-title text-gradient">Upgrade to Pro</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 24px; font-size: 14px;">
+                Unlock all 26 world-first features and unlimited AI coaching
+            </p>
+            <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 12px; margin-bottom: 24px;">
+                <div style="font-size: 32px; font-weight: 800; margin-bottom: 4px;">$15<span style="font-size: 16px; color: var(--text-secondary);">/month</span></div>
+                <div style="font-size: 12px; color: var(--text-secondary);">Cancel anytime • Full access</div>
+            </div>
+            <div id="payment-form">
+                <div class="input-group">
+                    <label class="input-label">Card Number</label>
+                    <input type="text" placeholder="4242 4242 4242 4242">
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <div class="input-group" style="flex: 1;">
+                        <label class="input-label">Expiry</label>
+                        <input type="text" placeholder="MM/YY">
+                    </div>
+                    <div class="input-group" style="flex: 1;">
+                        <label class="input-label">CVC</label>
+                        <input type="text" placeholder="123">
+                    </div>
+                </div>
+                <button class="btn btn-pro" onclick="processPayment()" style="margin-top: 16px;">
+                    Subscribe Now
+                </button>
+                <button class="btn btn-secondary" onclick="closeStripeModal()" style="margin-top: 8px;">
+                    Maybe Later
                 </button>
             </div>
-        </header>
-
-        <!-- Dashboard -->
-        <div id="dashboard" class="p-4 pb-24">
-            <div class="glass rounded-2xl p-4 border border-slate-700 mb-6">
-                <div class="flex justify-between items-center">
-                    <div>
-                        <div class="text-sm text-slate-400">Welcome,</div>
-                        <div class="font-bold text-white text-lg" id="displayEmail">Architect</div>
-                    </div>
-                    <div class="text-right">
-                        <div class="text-xs text-slate-400">Status</div>
-                        <div class="text-green-400 font-bold text-sm">ACTIVE</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="tool-grid" id="toolsGrid">
-                <!-- Tools generated here -->
-            </div>
-        </div>
-
-        <!-- Tool View -->
-        <div id="toolView" class="hidden p-4 pb-24">
-            <div id="toolContent" class="space-y-4"></div>
         </div>
     </div>
-
+    
     <script>
-        // CONFIGURATION
-        const ACCESS_CODE = 'architect_x_2025';
-        const STRIPE_KEY = 'pk_live_51SnApvGonKjAFVYNDEH4EHFguvy2y1YfudZxI3W0QI3zo98t3r7Eyp9HkDvaJeHMkvbJ0gqSVV4KRJFP55BOVEQk00w2P88MEz';
-        
-        // STATE
+        // App State
         let currentUser = null;
+        let isPro = false;
+        let scannerActive = false;
+        let breathInterval;
+        let foodLog = [];
         
-        // Initialize
+        // Check for existing session
         window.onload = function() {
-            const saved = localStorage.getItem('nutrisync_user');
-            if (saved) {
-                currentUser = JSON.parse(saved);
-                unlockApp();
+            const savedUser = localStorage.getItem('nutrisync_user');
+            const accessType = localStorage.getItem('nutrisync_access');
+            
+            if (savedUser) {
+                currentUser = JSON.parse(savedUser);
+                isPro = accessType === 'lifetime' || accessType === 'subscribed';
+                showMainApp();
+                initCharts();
             }
         };
         
-        // NAVIGATION FUNCTIONS
-        function showAccessCodeEntry() {
-            hideAllSections();
-            document.getElementById('accessCodeSection').classList.remove('hidden');
-            document.getElementById('accessCodeInput').focus();
-        }
-        
-        function showEmailSignup() {
-            hideAllSections();
-            document.getElementById('emailSection').classList.remove('hidden');
-        }
-        
-        function showStripeSubscribe() {
-            hideAllSections();
-            document.getElementById('stripeSection').classList.remove('hidden');
-        }
-        
-        function backToEntry() {
-            hideAllSections();
-            document.getElementById('entryChoice').classList.remove('hidden');
-            document.getElementById('accessError').style.display = 'none';
-        }
-        
-        function hideAllSections() {
-            document.getElementById('entryChoice').classList.add('hidden');
-            document.getElementById('accessCodeSection').classList.add('hidden');
-            document.getElementById('emailSection').classList.add('hidden');
-            document.getElementById('stripeSection').classList.add('hidden');
-        }
-        
-        // ACCESS CODE VERIFICATION
-        function verifyAccessCode() {
-            const input = document.getElementById('accessCodeInput');
-            const code = input.value.trim().toLowerCase();
-            const errorDiv = document.getElementById('accessError');
-            
-            console.log('Attempting code:', code);
-            console.log('Expected:', ACCESS_CODE);
-            
-            if (code === ACCESS_CODE) {
-                // SUCCESS
-                errorDiv.style.display = 'none';
-                input.classList.add('success-pulse');
-                
-                currentUser = {
-                    type: 'architect',
-                    code: code,
-                    email: 'architect@nutrisync.ai',
-                    unlockedAt: new Date().toISOString()
-                };
-                
-                saveUser();
-                
-                setTimeout(() => {
-                    unlockApp();
-                }, 500);
-            } else {
-                // FAILURE
-                input.classList.add('shake');
-                errorDiv.style.display = 'block';
-                input.value = '';
-                input.focus();
-                
-                setTimeout(() => {
-                    input.classList.remove('shake');
-                }, 500);
-            }
-        }
-        
-        // EMAIL SIGNUP
-        function createAccount() {
-            const email = document.getElementById('signupEmail').value;
-            const password = document.getElementById('signupPassword').value;
+        // Auth Handler
+        function handleAuth() {
+            const email = document.getElementById('auth-email').value;
+            const password = document.getElementById('auth-password').value;
+            const accessCode = document.getElementById('access-code').value.trim();
             
             if (!email || !password) {
-                alert('Please enter email and password');
+                showNotification('Please enter email and password');
                 return;
             }
             
-            currentUser = {
-                type: 'email',
-                email: email,
-                createdAt: new Date().toISOString()
-            };
-            
-            saveUser();
-            unlockApp();
-        }
-        
-        // STRIPE (Simulated)
-        function processStripePayment() {
-            alert('Stripe Checkout would open here with key: ' + STRIPE_KEY.substring(0, 20) + '...');
-            currentUser = {
-                type: 'subscriber',
-                email: 'subscriber@example.com',
-                subscribedAt: new Date().toISOString()
-            };
-            saveUser();
-            unlockApp();
-        }
-        
-        // SAVE/LOAD
-        function saveUser() {
-            localStorage.setItem('nutrisync_user', JSON.stringify(currentUser));
-        }
-        
-        function logout() {
-            localStorage.removeItem('nutrisync_user');
-            location.reload();
-        }
-        
-        // UNLOCK APP
-        function unlockApp() {
-            document.getElementById('authOverlay').classList.add('hidden');
-            document.getElementById('mainApp').classList.remove('hidden');
-            
-            // Show architect badge if applicable
-            if (currentUser && currentUser.type === 'architect') {
-                document.getElementById('architectBadge').classList.remove('hidden');
-                document.getElementById('displayEmail').textContent = 'Architect';
-            } else {
-                document.getElementById('displayEmail').textContent = currentUser.email || 'User';
+            // Check architect access code
+            if (accessCode === 'architect_x_2025') {
+                isPro = true;
+                localStorage.setItem('nutrisync_access', 'lifetime');
+                showNotification('🗝️ Architect Access Granted - Unlimited Lifetime Pro');
             }
             
-            generateTools();
+            currentUser = {
+                email: email,
+                created: new Date().toISOString(),
+                isPro: isPro
+            };
+            
+            localStorage.setItem('nutrisync_user', JSON.stringify(currentUser));
+            showMainApp();
+            initCharts();
+            showNotification('Welcome to NutriSync Pro');
         }
         
-        // TOOL GENERATION (177 Modules)
-        function generateTools() {
-            const grid = document.getElementById('toolsGrid');
-            const categories = {
-                weightloss: ['Adaptive Metabolic', 'Whoosh Predictor', 'Refeed Calc', 'Mini Cut', 'Carb Cycle', 'Protein Pulse', 'TEF Calc', 'NEAT Max', 'Ketone Opt', 'Satiety Index', 'Craving AI', 'Plateau Breaker', 'Diet Break', 'Reverse Diet', 'Water Load', 'Sodium Cycle', 'Body Recomp', 'Obesity Risk', 'Visceral Fat', 'Skin Elasticity', 'Metabolic Adapt', 'Calorie Cycle', 'Fat Burn Timer', 'Hunger Hormone', 'Cheat Recovery', 'Macro Optimize', 'Micro Nutrient', 'Meal Timing', 'Fasting Optimizer', 'Digestion Health'],
-                health: ['Telomere Length', 'NAD Levels', 'Mitochondria', 'Inflammation', 'Oxidative Stress', 'Gut Health', 'Liver Function', 'Kidney Function', 'Thyroid Opt', 'Cortisol Curve', 'Circadian Entrain', 'Vitamin D Syn', 'Hydration Status', 'Detox Capacity', 'Immune Score', 'Hormone Panel', 'Epigenetic Clock', 'Cellular Health', 'Autophagy Score', 'Senescence Load', 'Proteostasis', 'Methylation', 'Acetylation', 'Sirtuins', 'AMPK/mTOR', 'Insulin Sens', 'Glucose Var', 'Ketone Util', 'Heart Rate Var', 'Blood Pressure'],
-                fitness: ['Periodization', 'Overtraining AI', 'Lactate Threshold', 'Critical Power', 'Running Economy', 'Explosive Power', 'Strength Curve', 'Endurance', 'Recovery Score', 'HRV Analysis', 'Training Load', 'VO2 Max', 'FTP Test', '1RM Calc', 'Wilks Score', 'Biomechanics', 'Movement Screen', 'Injury Risk', 'Mobility Score', 'Plyometrics', 'Eccentric Load', 'Concentric Power', 'Isometric Force', 'Stretch Shortening', 'Energy Systems', 'Stroke Volume', 'Cardiac Output', 'Pulmonary Func', 'Mechanical Eff', 'Tendon Health'],
-                medical: ['Symptom Check', 'Drug Interactions', 'Stroke Risk', 'Fracture Risk', 'Diabetes Risk', 'CVD Risk', 'Cancer Screen', 'Autoimmune', 'Allergy Profile', 'Vaccination', 'Lab Results', 'Imaging', 'Diagnosis History', 'Treatment Plan', 'Referral Network', 'Second Opinion', 'Genetic Risk', 'Medication List', 'Emergency Card', 'Physician Connect', 'BP Tracker', 'Glucose Monitor', 'Oxygen Sat', 'Temp Tracker', 'Symptom Diary', 'Pain Scale', 'Wound Care', 'Mental Health', 'Cognitive Test', 'Balance Test'],
-                mental: ['CBT Thought Record', 'Mood Tracker', 'Anxiety Scale', 'Depression Screen', 'PTSD Check', 'Bipolar Screen', 'Eating Disorder', 'Addiction Test', 'Personality Test', 'Stress Test', 'Burnout Assess', 'Grief Assess', 'Crisis Plan', 'Safety Plan', 'Coping Skills', 'Meditation Guide', 'Sleep Hygiene', 'Social Connect', 'Purpose Finder', 'Gratitude Journal', 'Worry Tree', 'Behavioral Active', 'Exposure Ladder', 'Relaxation', 'Breathing', 'Mindfulness', 'DBT Skills', 'ACT Therapy', 'Positive Psych', 'Resilience']
+        function showMainApp() {
+            document.getElementById('auth-page').classList.add('hidden');
+            document.getElementById('main-app').classList.remove('hidden');
+            document.getElementById('main-nav').classList.add('active');
+            
+            if (isPro) {
+                document.querySelectorAll('.pro-lock').forEach(el => el.classList.remove('locked'));
+            }
+        }
+        
+        // Navigation
+        function navigate(page) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            
+            document.getElementById('page-' + page).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+        
+        // Stripe Integration
+        function showStripeModal() {
+            document.getElementById('stripe-modal').classList.add('active');
+        }
+        
+        function closeStripeModal() {
+            document.getElementById('stripe-modal').classList.remove('active');
+        }
+        
+        function processPayment() {
+            // Simulate Stripe processing
+            const btn = event.target;
+            btn.textContent = 'Processing...';
+            
+            setTimeout(() => {
+                isPro = true;
+                localStorage.setItem('nutrisync_access', 'subscribed');
+                localStorage.setItem('nutrisync_sub_expiry', new Date(Date.now() + 30*24*60*60*1000).toISOString());
+                
+                showNotification('✅ Pro Subscription Activated!');
+                closeStripeModal();
+                
+                if (currentUser) {
+                    showMainApp();
+                } else {
+                    document.getElementById('access-code').value = 'PAID_SUBSCRIPTION';
+                }
+            }, 1500);
+        }
+        
+        // AI Food Scanner
+        function toggleScanner() {
+            const video = document.getElementById('camera-feed');
+            const container = document.getElementById('scanner-view');
+            
+            if (!scannerActive) {
+                navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+                    .then(stream => {
+                        video.srcObject = stream;
+                        scannerActive = true;
+                        container.style.borderColor = 'var(--accent-lime)';
+                    })
+                    .catch(err => {
+                        showNotification('Camera access denied. Using AI simulation.');
+                        simulateScan();
+                    });
+            } else {
+                const stream = video.srcObject;
+                if (stream) {
+                    stream.getTracks().forEach(track => track.stop());
+                }
+                video.srcObject = null;
+                scannerActive = false;
+            }
+        }
+        
+        function simulateScan() {
+            showNotification('🤖 Analyzing food with AI Vision...');
+            setTimeout(() => {
+                document.getElementById('scan-result').classList.remove('hidden');
+                showNotification('✅ Analysis Complete - 98.4% confidence');
+            }, 1500);
+        }
+        
+        function addScannedFood() {
+            const food = {
+                name: 'Grilled Chicken Salad',
+                calories: 420,
+                protein: 45,
+                carbs: 12,
+                fat: 18,
+                time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
             };
             
-            const colors = {
-                weightloss: 'orange',
-                health: 'green',
-                fitness: 'blue',
-                medical: 'red',
-                mental: 'purple'
+            addFoodToLog(food);
+            document.getElementById('scan-result').classList.add('hidden');
+            showNotification('Added: ' + food.name);
+        }
+        
+        function analyzeTextFood() {
+            const input = document.getElementById('food-input').value;
+            if (!input) return;
+            
+            showNotification('🧠 AI parsing natural language...');
+            
+            // Simulate AI parsing
+            setTimeout(() => {
+                const food = {
+                    name: input,
+                    calories: Math.floor(Math.random() * 300) + 200,
+                    protein: Math.floor(Math.random() * 30) + 10,
+                    carbs: Math.floor(Math.random() * 40) + 10,
+                    fat: Math.floor(Math.random() * 20) + 5,
+                    time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+                };
+                
+                addFoodToLog(food);
+                document.getElementById('food-input').value = '';
+                showNotification('Logged: ' + food.name + ' (' + food.calories + ' kcal)');
+            }, 800);
+        }
+        
+        function handleFoodInput(e) {
+            if (e.key === 'Enter') analyzeTextFood();
+        }
+        
+        function addFoodToLog(food) {
+            foodLog.push(food);
+            
+            const list = document.getElementById('food-log-list');
+            const item = document.createElement('div');
+            item.className = 'food-item';
+            item.innerHTML = `
+                <div class="food-info">
+                    <h4>${food.name}</h4>
+                    <p>${food.time} • AI Analyzed</p>
+                </div>
+                <div class="food-cal">${food.calories} kcal</div>
+            `;
+            list.insertBefore(item, list.firstChild);
+            
+            updateCalorieRing();
+        }
+        
+        function updateCalorieRing() {
+            const consumed = foodLog.reduce((sum, f) => sum + f.calories, 0);
+            const total = 2290;
+            const remaining = total - consumed;
+            const offset = 553 - (consumed / total) * 553;
+            
+            document.getElementById('calories-remaining').textContent = remaining.toLocaleString();
+            document.getElementById('consumed-cals').textContent = consumed;
+            document.getElementById('calorie-ring').style.strokeDashoffset = offset;
+        }
+        
+        // Exercise System
+        function showExercises(type) {
+            const videos = {
+                weights: 'https://www.youtube.com/embed/UBMk30rjy0o',
+                cardio: 'https://www.youtube.com/embed/ml6cT4AZdqI',
+                yoga: 'https://www.youtube.com/embed/v7AYKMP6rOE',
+                taichi: 'https://www.youtube.com/embed/hblgR8gX3kg'
             };
             
-            let html = '';
-            let count = 0;
+            const titles = {
+                weights: 'Full Body Strength Training',
+                cardio: 'High Intensity Cardio Blast',
+                yoga: 'Power Yoga Flow',
+                taichi: 'Tai Chi for Beginners'
+            };
             
-            Object.entries(categories).forEach(([cat, items]) => {
-                items.forEach(item => {
-                    if (count >= 177) return;
-                    const color = colors[cat];
-                    const id = `tool_${count}`;
-                    html += `
-                        <button onclick="openTool('${id}', '${item}', '${color}')" class="tool-btn border-${color}-500/30">
-                            <i class="fas fa-microscope text-${color}-400 text-2xl mb-1"></i>
-                            <div class="text-[10px] font-bold text-white leading-tight">${item}</div>
-                            <div class="text-[8px] text-${color}-400 mt-1">WF-${count + 1}</div>
-                        </button>
-                    `;
-                    count++;
-                });
+            document.getElementById('exercise-video').src = videos[type];
+            document.getElementById('video-title').textContent = titles[type];
+            document.getElementById('exercise-video-section').classList.remove('hidden');
+            
+            document.getElementById('page-exercise').scrollTop = document.getElementById('exercise-video-section').offsetTop;
+        }
+        
+        function hideVideo() {
+            document.getElementById('exercise-video').src = '';
+            document.getElementById('exercise-video-section').classList.add('hidden');
+        }
+        
+        function generateMicroWorkout() {
+            document.getElementById('micro-workout-result').classList.remove('hidden');
+            showNotification('⚡ Micro-workout generated from calendar analysis');
+        }
+        
+        function logExercise() {
+            showNotification('💪 Exercise logged! +120 kcal burned');
+            document.getElementById('burned-cals').textContent = parseInt(document.getElementById('burned-cals').textContent) + 120;
+        }
+        
+        // Breathing System
+        function setBreathingMode(mode) {
+            clearInterval(breathInterval);
+            
+            const patterns = {
+                relax: { inhale: 4, hold1: 2, exhale: 6, hold2: 0, text: 'Relax' },
+                energy: { inhale: 2, hold1: 0, exhale: 2, hold2: 0, text: 'Energy' },
+                sleep: { inhale: 4, hold1: 7, exhale: 8, hold2: 0, text: 'Sleep' }
+            };
+            
+            const pattern = patterns[mode];
+            let phase = 'inhale';
+            let count = pattern.inhale;
+            
+            document.querySelectorAll('.breathing-container button').forEach(btn => {
+                btn.classList.remove('btn');
+                btn.classList.add('btn-secondary');
+            });
+            event.target.classList.remove('btn-secondary');
+            event.target.classList.add('btn');
+            
+            breathInterval = setInterval(() => {
+                document.getElementById('breath-timer').textContent = count;
+                document.getElementById('breath-instruction').textContent = phase.toUpperCase();
+                
+                count--;
+                
+                if (count < 0) {
+                    if (phase === 'inhale') {
+                        phase = pattern.hold1 > 0 ? 'hold' : 'exhale';
+                        count = pattern.hold1 > 0 ? pattern.hold1 : pattern.exhale;
+                    } else if (phase === 'hold') {
+                        phase = 'exhale';
+                        count = pattern.exhale;
+                    } else if (phase === 'exhale') {
+                        phase = pattern.hold2 > 0 ? 'hold' : 'inhale';
+                        count = pattern.hold2 > 0 ? pattern.hold2 : pattern.inhale;
+                    }
+                }
+            }, 1000);
+        }
+        
+        function startGuided(type) {
+            showNotification('🎧 Starting guided session...');
+            setBreathingMode('relax');
+        }
+        
+        // AI Coach
+        function handleChat(e) {
+            if (e.key === 'Enter') sendMessage();
+        }
+        
+        function sendMessage() {
+            const input = document.getElementById('chat-input');
+            const message = input.value.trim();
+            if (!message) return;
+            
+            addChatMessage(message, 'user');
+            input.value = '';
+            
+            // Simulate AI response
+            setTimeout(() => {
+                const responses = [
+                    "Based on your biometric data, I recommend increasing protein by 15g today to optimize recovery. Your HRV indicates high readiness.",
+                    "I've analyzed your meal timing. Shifting dinner 30 minutes earlier could improve your sleep quality by 12% based on your circadian rhythm.",
+                    "Your stress markers are elevated. Activating 'Adrenal Support' mode - adjusting macros to favor complex carbs and magnesium-rich foods.",
+                    "Prediction: You're 73% likely to hit a PR if you train legs today. Cortisol-to-testosterone ratio is optimal.",
+                    "Scanning your grocery list... Replace the brown rice with quinoa for 40% more protein efficiency per your DNA profile."
+                ];
+                
+                const response = responses[Math.floor(Math.random() * responses.length)];
+                addChatMessage(response, 'ai');
+            }, 1000);
+        }
+        
+        function addChatMessage(text, sender) {
+            const container = document.getElementById('chat-messages');
+            const msg = document.createElement('div');
+            msg.className = 'chat-message chat-' + sender;
+            msg.textContent = text;
+            container.appendChild(msg);
+            container.scrollTop = container.scrollHeight;
+        }
+        
+        function quickAsk(type) {
+            const prompts = {
+                meal: "Generate a 500 calorie high-protein dinner with ingredients I have: chicken, broccoli, rice",
+                workout: "Design a back workout for today considering I trained chest yesterday",
+                mindset: "Help me stay motivated when I'm craving junk food at night",
+                analyze: "Analyze this plate: 200g salmon, 1 cup quinoa, asparagus"
+            };
+            
+            document.getElementById('chat-input').value = prompts[type];
+            sendMessage();
+        }
+        
+        // Calculators
+        function calculateMetabolism() {
+            const height = parseFloat(document.getElementById('calc-height').value);
+            const weight = parseFloat(document.getElementById('calc-weight').value);
+            const age = parseFloat(document.getElementById('calc-age').value);
+            const goal = parseFloat(document.getElementById('calc-goal').value);
+            const activity = parseFloat(document.getElementById('calc-activity').value);
+            
+            if (!height || !weight || !age || !goal) {
+                showNotification('Please fill in all fields');
+                return;
+            }
+            
+            // Mifflin-St Jeor Equation
+            const bmr = 10 * weight + 6.25 * height - 5 * age + 5;
+            const tdee = bmr * activity;
+            const deficit = (weight - goal) * 7700 / 84; // 12 weeks
+            const target = tdee - deficit;
+            
+            document.getElementById('target-calories').textContent = Math.round(target).toLocaleString();
+            document.getElementById('calc-result').classList.remove('hidden');
+            
+            showNotification('✅ Metabolic calculation complete');
+        }
+        
+        // Charts
+        function initCharts() {
+            // Volume Chart
+            const ctx1 = document.getElementById('volumeChart').getContext('2d');
+            new Chart(ctx1, {
+                type: 'line',
+                data: {
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    datasets: [{
+                        label: 'Volume Load',
+                        data: [4500, 5200, 4800, 6100, 5800, 7200, 4900],
+                        borderColor: '#00f0ff',
+                        backgroundColor: 'rgba(0, 240, 255, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { display: false },
+                        x: { ticks: { color: '#a0a0b0' }, grid: { display: false } }
+                    }
+                }
             });
             
-            grid.innerHTML = html;
+            // Weight Prediction Chart
+            const ctx2 = document.getElementById('weightChart').getContext('2d');
+            new Chart(ctx2, {
+                type: 'line',
+                data: {
+                    labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 8', 'Week 12'],
+                    datasets: [{
+                        label: 'Projected',
+                        data: [70, 69.2, 68.5, 67.8, 66.5, 65],
+                        borderColor: '#b829dd',
+                        backgroundColor: 'rgba(184, 41, 221, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }, {
+                        label: 'Current',
+                        data: [70, 69.1, 68.4, null, null, null],
+                        borderColor: '#00f0ff',
+                        borderDash: [5, 5],
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { labels: { color: '#fff' } } },
+                    scales: {
+                        y: { ticks: { color: '#a0a0b0' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                        x: { ticks: { color: '#a0a0b0' }, grid: { display: false } }
+                    }
+                }
+            });
         }
         
-        function openTool(id, title, color) {
-            document.getElementById('dashboard').classList.add('hidden');
-            document.getElementById('toolView').classList.remove('hidden');
-            document.getElementById('backBtn').classList.remove('hidden');
-            document.getElementById('headerTitle').textContent = title;
-            
-            document.getElementById('toolContent').innerHTML = `
-                <div class="glass rounded-2xl p-6 border border-${color}-500/30">
-                    <div class="text-center mb-6">
-                        <i class="fas fa-microscope text-5xl text-${color}-400 mb-4"></i>
-                        <h2 class="text-2xl font-bold text-white">${title}</h2>
-                        <div class="text-sm text-slate-400 mt-2">World-First Technology Module</div>
-                    </div>
-                    
-                    <div class="space-y-4">
-                        <input type="number" class="input-field border-${color}-500/50" placeholder="Enter measurement">
-                        <input type="number" class="input-field border-${color}-500/50" placeholder="Enter value">
-                        <button onclick="calculateTool('${title}')" class="btn-primary bg-gradient-to-r from-${color}-600 to-${color}-800">Calculate ${title}</button>
-                        
-                        <div id="result_${id}" class="hidden mt-6 p-6 bg-${color}-500/10 border border-${color}-500/30 rounded-xl text-center">
-                            <div class="text-sm text-slate-400 mb-2">Result</div>
-                            <div class="text-4xl font-bold text-${color}-400" id="val_${id}">--</div>
-                            <div class="text-sm text-slate-300 mt-2">Calculation complete</div>
-                        </div>
-                    </div>
-                    
-                    <div class="mt-6 p-4 bg-slate-800/50 rounded-lg text-sm text-slate-400">
-                        <div class="font-bold text-${color}-400 mb-2">About this module:</div>
-                        <p>This world-first ${title} calculator uses advanced algorithms to analyze your health metrics and provide personalized recommendations.</p>
-                    </div>
-                </div>
-            `;
+        // Utilities
+        function showNotification(text) {
+            const notif = document.getElementById('notification');
+            notif.textContent = text;
+            notif.classList.add('show');
+            setTimeout(() => notif.classList.remove('show'), 3000);
         }
         
-        function calculateTool(title) {
-            const result = Math.floor(Math.random() * 100) + 1;
-            const id = event.target.closest('.glass').querySelector('[id^="result_"]').id;
-            const valId = id.replace('result_', 'val_');
-            
-            document.getElementById(id).classList.remove('hidden');
-            document.getElementById(valId).textContent = result + (title.includes('Age') ? ' yrs' : title.includes('Weight') ? ' kg' : ' %');
-        }
+        // Close modal on outside click
+        document.getElementById('stripe-modal').addEventListener('click', function(e) {
+            if (e.target === this) closeStripeModal();
+        });
         
-        function goBack() {
-            document.getElementById('toolView').classList.add('hidden');
-            document.getElementById('dashboard').classList.remove('hidden');
-            document.getElementById('backBtn').classList.add('hidden');
-            document.getElementById('headerTitle').textContent = 'NutriSync AI';
-        }
+        // Initialize breathing
+        setBreathingMode('relax');
     </script>
 </body>
-</html>
+</html>'''
