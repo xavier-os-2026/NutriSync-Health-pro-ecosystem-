@@ -4,17 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#0f172a">
-    <title>NutriSync Pro | Command Center</title>
+    <title>NutriSync Pro | Health Ecosystem</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
         
-        * {
-            font-family: 'Inter', sans-serif;
-            -webkit-tap-highlight-color: transparent;
-        }
+        * { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
         
         body {
             background: #0f172a;
@@ -38,63 +35,52 @@
             background: linear-gradient(135deg, #06b6d4, #3b82f6, #8b5cf6);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            background-clip: text;
         }
         
         .neon-border {
             box-shadow: 0 0 20px rgba(6, 182, 212, 0.3), inset 0 0 20px rgba(6, 182, 212, 0.1);
         }
         
-        .breathing-circle {
-            background: radial-gradient(circle at 30% 30%, #06b6d4, #3b82f6, #1e40af);
-            box-shadow: 0 0 60px rgba(6, 182, 212, 0.5), 0 0 100px rgba(59, 130, 246, 0.3);
-            animation: breathe 4s ease-in-out infinite;
+        .page {
+            display: none;
+            animation: fadeIn 0.3s ease;
+            min-height: 100vh;
+            padding-bottom: 100px;
         }
         
-        @keyframes breathe {
-            0%, 100% { transform: scale(1); opacity: 0.9; }
-            50% { transform: scale(1.05); opacity: 1; }
+        .page.active {
+            display: block;
         }
         
-        .feature-card {
-            transition: all 0.3s ease;
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
         }
         
-        .feature-card:hover {
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+        
+        .metric-card {
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.9));
+            border: 1px solid rgba(6, 182, 212, 0.2);
+            transition: all 0.3s;
+        }
+        
+        .metric-card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 40px rgba(6, 182, 212, 0.2);
+            border-color: rgba(6, 182, 212, 0.5);
         }
         
-        .locked {
-            opacity: 0.4;
-            filter: grayscale(1);
-            pointer-events: none;
-            position: relative;
+        .pro-toast {
+            transform: translateY(-100px);
+            transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
         }
         
-        .locked::after {
-            content: '\f023';
-            font-family: 'Font Awesome 6 Free';
-            font-weight: 900;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 24px;
-            color: rgba(255,255,255,0.8);
-            background: rgba(0,0,0,0.7);
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .unlocked {
-            opacity: 1;
-            filter: none;
-            pointer-events: all;
+        .pro-toast.show {
+            transform: translateY(0);
         }
         
         .world-first-badge {
@@ -102,32 +88,12 @@
             box-shadow: 0 0 20px rgba(245, 158, 11, 0.4);
         }
         
-        .pro-badge {
-            background: linear-gradient(90deg, #06b6d4, #3b82f6);
-            box-shadow: 0 0 20px rgba(6, 182, 212, 0.4);
+        .nav-item {
+            transition: all 0.3s;
         }
         
-        .tab-active {
-            background: linear-gradient(135deg, #06b6d4, #3b82f6);
-            color: white;
-        }
-        
-        .scroll-hide::-webkit-scrollbar {
-            display: none;
-        }
-        
-        .ai-pulse {
-            animation: aiPulse 2s ease-in-out infinite;
-        }
-        
-        @keyframes aiPulse {
-            0%, 100% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.7); }
-            50% { box-shadow: 0 0 0 20px rgba(139, 92, 246, 0); }
-        }
-        
-        .metric-card {
-            background: linear-gradient(135deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.9));
-            border: 1px solid rgba(6, 182, 212, 0.2);
+        .nav-item.active {
+            color: #06b6d4;
         }
         
         .chat-message {
@@ -136,12 +102,6 @@
             padding: 12px 16px;
             border-radius: 20px;
             word-wrap: break-word;
-            animation: messageSlide 0.3s ease;
-        }
-        
-        @keyframes messageSlide {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
         }
         
         .chat-user {
@@ -157,80 +117,108 @@
             border-bottom-left-radius: 4px;
         }
         
-        .typing-indicator span {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            background: #8b5cf6;
+        /* Feature Specific Styles */
+        .dna-helix {
+            width: 60px;
+            height: 60px;
+            border: 3px solid #06b6d4;
             border-radius: 50%;
-            margin: 0 2px;
-            animation: typing 1.4s infinite ease-in-out both;
+            position: relative;
+            animation: rotate 3s linear infinite;
         }
         
-        .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
-        .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
-        
-        @keyframes typing {
-            0%, 80%, 100% { transform: scale(0); }
-            40% { transform: scale(1); }
+        .dna-helix::before {
+            content: '';
+            position: absolute;
+            inset: -3px;
+            border: 3px solid transparent;
+            border-top-color: #8b5cf6;
+            border-radius: 50%;
+            animation: rotate 2s linear infinite reverse;
         }
         
-        .input-field {
-            background: rgba(30, 41, 59, 0.8);
-            border: 1px solid rgba(6, 182, 212, 0.3);
-            transition: all 0.3s;
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
         
-        .input-field:focus {
-            border-color: #06b6d4;
-            box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.1);
-            outline: none;
+        .vr-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            perspective: 1000px;
         }
         
-        .page {
-            display: none;
-            animation: fadeIn 0.3s ease;
+        .vr-card {
+            aspect-ratio: 1;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(59, 130, 246, 0.3));
+            border: 1px solid rgba(139, 92, 246, 0.5);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transform-style: preserve-3d;
+            transition: transform 0.3s;
         }
         
-        .page.active {
-            display: block;
+        .vr-card:hover {
+            transform: translateZ(20px);
         }
         
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+        .hrv-graph {
+            height: 100px;
+            background: linear-gradient(90deg, rgba(6, 182, 212, 0.1), rgba(139, 92, 246, 0.1));
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
         }
         
-        .nav-item {
-            transition: all 0.3s;
+        .hrv-line {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 60%;
+            background: linear-gradient(90deg, #06b6d4, #8b5cf6);
+            opacity: 0.6;
+            animation: hrvPulse 2s ease-in-out infinite;
         }
         
-        .nav-item.active {
-            color: #06b6d4;
+        @keyframes hrvPulse {
+            0%, 100% { transform: scaleY(1); }
+            50% { transform: scaleY(1.1); }
         }
         
-        .nav-item.active i {
-            transform: translateY(-4px);
+        .gut-bacteria {
+            width: 20px;
+            height: 20px;
+            background: #10b981;
+            border-radius: 50%;
+            position: absolute;
+            animation: float 3s ease-in-out infinite;
         }
         
-        .access-overlay-hidden {
-            opacity: 0;
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0); }
+            25% { transform: translate(10px, -10px); }
+            50% { transform: translate(0, -20px); }
+            75% { transform: translate(-10px, -10px); }
+        }
+        
+        .locked {
+            opacity: 0.5;
+            filter: grayscale(1);
             pointer-events: none;
-            transition: opacity 0.5s;
         }
         
-        .pro-toast {
-            transform: translateY(-100px);
-            transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-        }
-        
-        .pro-toast.show {
-            transform: translateY(0);
+        .unlocked {
+            opacity: 1;
+            filter: none;
+            pointer-events: all;
         }
     </style>
 </head>
-<body class="pb-24">
-
+<body>
     <!-- Access Overlay -->
     <div id="accessOverlay" class="fixed inset-0 z-[60] glass-strong flex items-center justify-center p-6">
         <div class="text-center max-w-md w-full">
@@ -241,14 +229,10 @@
             <p class="text-gray-400 mb-8 text-lg">Next-Generation Health Ecosystem</p>
             
             <div class="space-y-4">
-                <div class="relative">
-                    <input type="text" id="accessCodeInput" placeholder="Enter access credentials..." 
-                        class="w-full px-6 py-4 rounded-xl input-field text-center text-lg tracking-wider"
-                        autocomplete="off" autocapitalize="off">
-                    <div id="accessError" class="absolute -bottom-6 left-0 right-0 text-red-400 text-sm hidden">
-                        <i class="fas fa-exclamation-circle mr-1"></i> Invalid credentials
-                    </div>
-                </div>
+                <input type="text" id="accessCodeInput" placeholder="Enter access credentials..." 
+                    class="w-full px-6 py-4 rounded-xl bg-gray-800/50 border border-gray-700 text-center text-lg tracking-wider focus:border-cyan-500 focus:outline-none transition"
+                    autocomplete="off" autocapitalize="off">
+                <div id="accessError" class="text-red-400 text-sm hidden">Invalid credentials</div>
                 <button onclick="validateAccess()" class="w-full py-4 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold shadow-lg shadow-cyan-500/25 hover:shadow-cyan-500/40 transition">
                     <i class="fas fa-lock-open mr-2"></i>Unlock Premium
                 </button>
@@ -256,1184 +240,1185 @@
                     Continue with Limited Access
                 </button>
             </div>
-            
-            <div class="mt-8 pt-6 border-t border-gray-800">
-                <div class="flex justify-center gap-4 text-gray-600 text-sm">
-                    <span><i class="fas fa-shield-alt mr-1"></i>Secure</span>
-                    <span><i class="fas fa-bolt mr-1"></i>174+ Features</span>
-                    <span><i class="fas fa-brain mr-1"></i>AI Powered</span>
-                </div>
-            </div>
         </div>
     </div>
 
-    <!-- Pro Activated Toast -->
-    <div id="proToast" class="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 pro-badge text-white px-6 py-3 rounded-full font-bold shadow-2xl pro-toast pointer-events-none">
-        <i class="fas fa-crown mr-2"></i> Pro Suite Activated - Full Access Granted
+    <!-- Pro Toast -->
+    <div id="proToast" class="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-6 py-3 rounded-full font-bold shadow-2xl pro-toast pointer-events-none">
+        <i class="fas fa-crown mr-2"></i> Pro Suite Activated - 174+ Features Unlocked
     </div>
 
-    <!-- Header -->
-    <header class="fixed top-0 w-full z-40 glass-strong border-b border-gray-800">
-        <div class="max-w-lg mx-auto px-4 py-4 flex items-center justify-between">
-            <div>
-                <h1 class="text-xl font-bold" id="pageTitle">Command Center</h1>
-                <p class="text-xs text-gray-400">Your health ecosystem</p>
-            </div>
-            <div class="flex items-center gap-3">
-                <button onclick="openProfileModal()" class="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center hover:scale-110 transition">
-                    <i class="fas fa-user text-white text-sm"></i>
-                </button>
-                <div id="proBadge" class="hidden pro-badge text-white text-xs px-3 py-1 rounded-full font-bold animate-pulse">
-                    <i class="fas fa-crown mr-1"></i> PRO
-                </div>
-            </div>
-        </div>
-    </header>
-
-    <!-- Main Content -->
-    <main class="max-w-lg mx-auto px-4 pt-24">
+    <!-- MAIN APP CONTAINER -->
+    <div id="app" class="max-w-lg mx-auto">
         
+        <!-- HEADER -->
+        <header class="fixed top-0 w-full max-w-lg z-40 glass-strong border-b border-gray-800">
+            <div class="px-4 py-4 flex items-center justify-between">
+                <button id="backBtn" onclick="goBack()" class="hidden w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-gray-700 transition">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+                <div class="flex-1">
+                    <h1 class="text-xl font-bold" id="pageTitle">Command Center</h1>
+                    <p class="text-xs text-gray-400" id="pageSubtitle">Your health ecosystem</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div id="proBadge" class="hidden bg-gradient-to-r from-cyan-500 to-blue-600 text-white text-xs px-3 py-1 rounded-full font-bold animate-pulse">
+                        <i class="fas fa-crown mr-1"></i> PRO
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- SPACER -->
+        <div class="h-20"></div>
+
         <!-- HOME PAGE -->
-        <div id="homePage" class="page active">
-            <!-- Quick Stats Grid -->
-            <div class="grid grid-cols-2 gap-4 mb-6">
-                <div class="metric-card rounded-2xl p-4 cursor-pointer hover:border-cyan-500/50 transition" onclick="openProfileModal()">
-                    <div class="flex items-center justify-between mb-2">
-                        <span class="text-gray-400 text-xs font-medium">CURRENT WEIGHT</span>
-                        <i class="fas fa-weight text-cyan-400"></i>
-                    </div>
+        <div id="homePage" class="page active px-4">
+            <!-- Stats -->
+            <div class="grid grid-cols-2 gap-3 mb-6">
+                <div class="metric-card rounded-2xl p-4" onclick="showFeature('profile')">
+                    <div class="text-gray-400 text-xs mb-1">WEIGHT</div>
                     <div class="text-2xl font-bold" id="displayWeight">--</div>
-                    <div class="text-xs text-gray-500 mt-1" id="weightTrend">
-                        <i class="fas fa-minus mr-1"></i>No data
-                    </div>
                 </div>
-                
-                <div class="metric-card rounded-2xl p-4 cursor-pointer hover:border-purple-500/50 transition" onclick="openProfileModal()">
-                    <div class="flex items-center justify-between mb-2">
-                        <span class="text-gray-400 text-xs font-medium">GOAL WEIGHT</span>
-                        <i class="fas fa-bullseye text-purple-400"></i>
-                    </div>
+                <div class="metric-card rounded-2xl p-4" onclick="showFeature('profile')">
+                    <div class="text-gray-400 text-xs mb-1">GOAL</div>
                     <div class="text-2xl font-bold" id="displayGoalWeight">--</div>
-                    <div class="text-xs text-gray-500 mt-1" id="lbsToGo">Set your goal</div>
                 </div>
-                
                 <div class="metric-card rounded-2xl p-4">
-                    <div class="flex items-center justify-between mb-2">
-                        <span class="text-gray-400 text-xs font-medium">BMI INDEX</span>
-                        <i class="fas fa-calculator text-pink-400"></i>
-                    </div>
+                    <div class="text-gray-400 text-xs mb-1">BMI</div>
                     <div class="text-2xl font-bold" id="displayBMI">--</div>
-                    <div class="text-xs mt-1" id="bmiStatus">
-                        <span class="text-gray-500">Enter profile data</span>
-                    </div>
                 </div>
-                
                 <div class="metric-card rounded-2xl p-4">
-                    <div class="flex items-center justify-between mb-2">
-                        <span class="text-gray-400 text-xs font-medium">DAILY CALORIES</span>
-                        <i class="fas fa-fire text-orange-400"></i>
-                    </div>
+                    <div class="text-gray-400 text-xs mb-1">CALORIES</div>
                     <div class="text-2xl font-bold" id="displayCalories">0</div>
-                    <div class="text-xs text-gray-500 mt-1">kcal tracked</div>
                 </div>
             </div>
 
-            <!-- Weight Progress Chart -->
-            <div class="glass rounded-2xl p-5 mb-6">
-                <div class="flex items-center justify-between mb-4">
-                    <div>
-                        <h3 class="font-bold text-lg">Progress Analytics</h3>
-                        <p class="text-sm text-gray-400">Weight trajectory to goal</p>
-                    </div>
-                    <button onclick="openProfileModal()" class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center hover:scale-110 transition">
-                        <i class="fas fa-plus text-white"></i>
-                    </button>
-                </div>
-                <div class="relative h-48">
-                    <canvas id="weightChart"></canvas>
-                </div>
-            </div>
-
-            <!-- Neuro-Breathing Section -->
-            <div class="glass rounded-2xl p-5 mb-6 relative overflow-hidden">
-                <div class="absolute top-0 right-0 w-32 h-32 bg-cyan-500/10 rounded-full blur-3xl"></div>
-                
-                <div class="flex items-center justify-between mb-4 relative z-10">
-                    <div>
-                        <h3 class="font-bold text-lg">Neuro-Breathing</h3>
-                        <p class="text-sm text-gray-400">HRV-Optimized Training</p>
-                    </div>
-                    <div class="world-first-badge text-white text-xs px-3 py-1 rounded-full font-bold">
-                        <i class="fas fa-star mr-1"></i> WORLD FIRST
-                    </div>
-                </div>
-
-                <div class="flex justify-center mb-6 relative z-10">
-                    <button id="breathingBtn" onclick="toggleBreathing()" class="breathing-circle w-40 h-40 rounded-full flex items-center justify-center text-xl font-bold text-white relative overflow-hidden group">
-                        <span class="relative z-10" id="breathingText">START</span>
-                        <div class="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition"></div>
-                    </button>
-                </div>
-
-                <div class="flex justify-center gap-3 mb-4 relative z-10">
-                    <button onclick="setBreathingMode('relax')" class="breathing-mode px-4 py-2 rounded-full bg-cyan-500/20 border border-cyan-500/50 text-cyan-400 text-sm font-medium transition" data-mode="relax">
-                        <i class="fas fa-spa mr-1"></i>Relax
-                    </button>
-                    <button onclick="setBreathingMode('sleep')" class="breathing-mode px-4 py-2 rounded-full bg-gray-700/50 border border-gray-600 text-gray-400 text-sm font-medium transition" data-mode="sleep">
-                        <i class="fas fa-moon mr-1"></i>Sleep
-                    </button>
-                    <button onclick="setBreathingMode('energy')" class="breathing-mode px-4 py-2 rounded-full bg-gray-700/50 border border-gray-600 text-gray-400 text-sm font-medium transition" data-mode="energy">
-                        <i class="fas fa-bolt mr-1"></i>Energy
-                    </button>
-                </div>
-
-                <div class="text-center relative z-10">
-                    <div class="text-cyan-400 font-mono text-3xl font-bold" id="breathingTimer">00:00</div>
-                    <div class="text-xs text-gray-500 mt-1">Session Duration</div>
-                </div>
+            <!-- Chart -->
+            <div class="glass rounded-2xl p-4 mb-6">
+                <h3 class="font-bold mb-4">Weight Trajectory</h3>
+                <canvas id="weightChart" height="150"></canvas>
             </div>
 
             <!-- AI Doctor Card -->
-            <div class="glass rounded-2xl p-5 mb-6 cursor-pointer feature-card relative overflow-hidden group" onclick="showPage('aiDoctor')">
-                <div class="absolute -right-10 -top-10 w-40 h-40 bg-purple-500/20 rounded-full blur-3xl group-hover:bg-purple-500/30 transition"></div>
-                <div class="flex items-center justify-between relative z-10">
-                    <div class="flex items-center gap-4">
-                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center ai-pulse shadow-lg shadow-purple-500/30">
-                            <i class="fas fa-user-md text-white text-2xl"></i>
-                        </div>
-                        <div>
-                            <h3 class="font-bold text-lg">AI Doctor</h3>
-                            <p class="text-sm text-gray-400">24/7 Medical Intelligence</p>
-                            <div class="world-first-badge text-white text-xs px-2 py-0.5 rounded mt-1 inline-block font-bold">
-                                <i class="fas fa-star mr-1"></i> WORLD FIRST
-                            </div>
-                        </div>
+            <div class="glass rounded-2xl p-5 mb-4 cursor-pointer" onclick="showFeature('aiDoctor')">
+                <div class="flex items-center gap-4">
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center">
+                        <i class="fas fa-user-md text-white text-2xl"></i>
                     </div>
-                    <i class="fas fa-chevron-right text-gray-500 group-hover:text-cyan-400 transition"></i>
-                </div>
-            </div>
-
-            <!-- Elite Training -->
-            <div class="glass rounded-2xl p-5 mb-6">
-                <div class="flex items-center justify-between mb-4">
                     <div>
-                        <h3 class="font-bold text-lg">Elite Training</h3>
-                        <p class="text-sm text-gray-400">Multi-modal workout systems</p>
+                        <h3 class="font-bold text-lg">AI Doctor</h3>
+                        <p class="text-sm text-gray-400">24/7 Medical Intelligence</p>
                     </div>
-                    <div class="world-first-badge text-white text-xs px-3 py-1 rounded-full font-bold">
-                        <i class="fas fa-star mr-1"></i> AI FORM CORRECTION
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-3 gap-3">
-                    <button onclick="openWorkout('yoga')" class="bg-gray-800/50 rounded-xl p-4 text-center hover:bg-cyan-500/20 transition border border-gray-700 hover:border-cyan-500/50 group">
-                        <i class="fas fa-spa text-2xl text-cyan-400 mb-2 group-hover:scale-110 transition block"></i>
-                        <div class="text-sm font-medium">Yoga</div>
-                    </button>
-                    <button onclick="openWorkout('hiit')" class="bg-gray-800/50 rounded-xl p-4 text-center hover:bg-orange-500/20 transition border border-gray-700 hover:border-orange-500/50 group">
-                        <i class="fas fa-fire text-2xl text-orange-400 mb-2 group-hover:scale-110 transition block"></i>
-                        <div class="text-sm font-medium">HIIT</div>
-                    </button>
-                    <button onclick="openWorkout('strength')" class="bg-gray-800/50 rounded-xl p-4 text-center hover:bg-blue-500/20 transition border border-gray-700 hover:border-blue-500/50 group">
-                        <i class="fas fa-dumbbell text-2xl text-blue-400 mb-2 group-hover:scale-110 transition block"></i>
-                        <div class="text-sm font-medium">Strength</div>
-                    </button>
-                    <button onclick="openWorkout('taichi')" class="bg-gray-800/50 rounded-xl p-4 text-center hover:bg-purple-500/20 transition border border-gray-700 hover:border-purple-500/50 group">
-                        <i class="fas fa-yin-yang text-2xl text-purple-400 mb-2 group-hover:scale-110 transition block"></i>
-                        <div class="text-sm font-medium">Tai Chi</div>
-                    </button>
-                    <button onclick="openWorkout('pilates')" class="bg-gray-800/50 rounded-xl p-4 text-center hover:bg-pink-500/20 transition border border-gray-700 hover:border-pink-500/50 group">
-                        <i class="fas fa-female text-2xl text-pink-400 mb-2 group-hover:scale-110 transition block"></i>
-                        <div class="text-sm font-medium">Pilates</div>
-                    </button>
-                    <button onclick="openWorkout('boxing')" class="bg-gray-800/50 rounded-xl p-4 text-center hover:bg-red-500/20 transition border border-gray-700 hover:border-red-500/50 group">
-                        <i class="fas fa-fist-raised text-2xl text-red-400 mb-2 group-hover:scale-110 transition block"></i>
-                        <div class="text-sm font-medium">Boxing</div>
-                    </button>
+                    <i class="fas fa-chevron-right ml-auto text-gray-500"></i>
                 </div>
             </div>
 
-            <!-- Pro Features Suite -->
-            <div id="proFeatures" class="glass rounded-2xl p-5 mb-6 locked">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="flex items-center gap-3">
-                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-yellow-400 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/30">
-                            <i class="fas fa-crown text-white text-xl"></i>
-                        </div>
-                        <div>
-                            <h3 class="font-bold text-lg">Pro Suite</h3>
-                            <p class="text-sm text-gray-400">174+ Premium Features</p>
-                        </div>
-                    </div>
-                    <button onclick="promptProAccess()" id="proLockBtn" class="px-4 py-2 rounded-full bg-gray-800 text-sm font-medium hover:bg-gray-700 transition">
-                        <i class="fas fa-lock mr-1"></i> Unlock
-                    </button>
-                </div>
-
-                <div class="grid grid-cols-2 gap-3" id="proFeaturesList">
-                    <div class="pro-feature-item bg-gray-800/30 rounded-lg p-3 border border-gray-700/50 hover:bg-gray-700/50 transition cursor-pointer" onclick="openProFeature('DNA Analysis')">
-                        <i class="fas fa-dna text-yellow-400 mb-1 text-lg"></i>
-                        <div class="text-sm font-medium">DNA Analysis</div>
-                        <div class="text-xs text-gray-500">Genetic optimization</div>
-                    </div>
-                    <div class="pro-feature-item bg-gray-800/30 rounded-lg p-3 border border-gray-700/50 hover:bg-gray-700/50 transition cursor-pointer" onclick="openProFeature('VR Training')">
-                        <i class="fas fa-vr-cardboard text-purple-400 mb-1 text-lg"></i>
-                        <div class="text-sm font-medium">VR Training</div>
-                        <div class="text-xs text-gray-500">Immersive fitness</div>
-                    </div>
-                    <div class="pro-feature-item bg-gray-800/30 rounded-lg p-3 border border-gray-700/50 hover:bg-gray-700/50 transition cursor-pointer" onclick="openProFeature('Family Network')">
-                        <i class="fas fa-users text-blue-400 mb-1 text-lg"></i>
-                        <div class="text-sm font-medium">Family Network</div>
-                        <div class="text-xs text-gray-500">Group tracking</div>
-                    </div>
-                    <div class="pro-feature-item bg-gray-800/30 rounded-lg p-3 border border-gray-700/50 hover:bg-gray-700/50 transition cursor-pointer" onclick="openProFeature('AI Coach')">
-                        <i class="fas fa-robot text-green-400 mb-1 text-lg"></i>
-                        <div class="text-sm font-medium">AI Coach</div>
-                        <div class="text-xs text-gray-500">Personal trainer AI</div>
-                    </div>
-                    <div class="pro-feature-item bg-gray-800/30 rounded-lg p-3 border border-gray-700/50 hover:bg-gray-700/50 transition cursor-pointer" onclick="openProFeature('Clinical Reports')">
-                        <i class="fas fa-file-medical text-red-400 mb-1 text-lg"></i>
-                        <div class="text-sm font-medium">Clinical Reports</div>
-                        <div class="text-xs text-gray-500">Medical grade data</div>
-                    </div>
-                    <div class="pro-feature-item bg-gray-800/30 rounded-lg p-3 border border-gray-700/50 hover:bg-gray-700/50 transition cursor-pointer" onclick="openProFeature('HRV Monitor')">
-                        <i class="fas fa-heartbeat text-pink-400 mb-1 text-lg"></i>
-                        <div class="text-sm font-medium">HRV Monitor</div>
-                        <div class="text-xs text-gray-500">Stress tracking</div>
-                    </div>
-                    <div class="pro-feature-item bg-gray-800/30 rounded-lg p-3 border border-gray-700/50 hover:bg-gray-700/50 transition cursor-pointer" onclick="openProFeature('Gut Biome')">
-                        <i class="fas fa-bacteria text-cyan-400 mb-1 text-lg"></i>
-                        <div class="text-sm font-medium">Gut Biome</div>
-                        <div class="text-xs text-gray-500">Microbiome analysis</div>
-                    </div>
-                    <div class="pro-feature-item bg-gray-800/30 rounded-lg p-3 border border-gray-700/50 hover:bg-gray-700/50 transition cursor-pointer" onclick="openProFeature('Neurofeedback')">
-                        <i class="fas fa-brain text-indigo-400 mb-1 text-lg"></i>
-                        <div class="text-sm font-medium">Neurofeedback</div>
-                        <div class="text-xs text-gray-500">Brain optimization</div>
-                    </div>
+            <!-- PRO FEATURES GRID -->
+            <div class="mb-4">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="font-bold text-lg">Pro Suite <span class="world-first-badge text-xs px-2 py-1 rounded ml-2">174+ FEATURES</span></h3>
                 </div>
                 
-                <div class="mt-4 pt-4 border-t border-gray-700/50">
-                    <div class="flex justify-between text-xs text-gray-500">
-                        <span>+166 more features</span>
-                        <span class="text-cyan-400 cursor-pointer hover:underline" onclick="showAllFeatures()">View all</span>
+                <div id="proFeaturesGrid" class="feature-grid locked">
+                    <!-- DNA Analysis -->
+                    <div onclick="showFeature('dna')" class="glass rounded-xl p-4 cursor-pointer hover:border-yellow-500/50 border border-transparent transition">
+                        <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-yellow-400 to-orange-600 flex items-center justify-center mb-3">
+                            <i class="fas fa-dna text-white"></i>
+                        </div>
+                        <div class="font-bold text-sm">DNA Analysis</div>
+                        <div class="text-xs text-gray-500 mt-1">Genetic nutrition</div>
+                    </div>
+
+                    <!-- VR Training -->
+                    <div onclick="showFeature('vr')" class="glass rounded-xl p-4 cursor-pointer hover:border-purple-500/50 border border-transparent transition">
+                        <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center mb-3">
+                            <i class="fas fa-vr-cardboard text-white"></i>
+                        </div>
+                        <div class="font-bold text-sm">VR Training</div>
+                        <div class="text-xs text-gray-500 mt-1">Immersive fitness</div>
+                    </div>
+
+                    <!-- Family Network -->
+                    <div onclick="showFeature('family')" class="glass rounded-xl p-4 cursor-pointer hover:border-blue-500/50 border border-transparent transition">
+                        <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center mb-3">
+                            <i class="fas fa-users text-white"></i>
+                        </div>
+                        <div class="font-bold text-sm">Family Network</div>
+                        <div class="text-xs text-gray-500 mt-1">Group tracking</div>
+                    </div>
+
+                    <!-- AI Coach -->
+                    <div onclick="showFeature('coach')" class="glass rounded-xl p-4 cursor-pointer hover:border-green-500/50 border border-transparent transition">
+                        <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center mb-3">
+                            <i class="fas fa-robot text-white"></i>
+                        </div>
+                        <div class="font-bold text-sm">AI Coach</div>
+                        <div class="text-xs text-gray-500 mt-1">Form correction</div>
+                    </div>
+
+                    <!-- Clinical Reports -->
+                    <div onclick="showFeature('reports')" class="glass rounded-xl p-4 cursor-pointer hover:border-red-500/50 border border-transparent transition">
+                        <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-red-400 to-rose-600 flex items-center justify-center mb-3">
+                            <i class="fas fa-file-medical text-white"></i>
+                        </div>
+                        <div class="font-bold text-sm">Clinical Reports</div>
+                        <div class="text-xs text-gray-500 mt-1">Medical PDFs</div>
+                    </div>
+
+                    <!-- HRV Monitor -->
+                    <div onclick="showFeature('hrv')" class="glass rounded-xl p-4 cursor-pointer hover:border-pink-500/50 border border-transparent transition">
+                        <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-pink-400 to-rose-600 flex items-center justify-center mb-3">
+                            <i class="fas fa-heartbeat text-white"></i>
+                        </div>
+                        <div class="font-bold text-sm">HRV Monitor</div>
+                        <div class="text-xs text-gray-500 mt-1">Stress tracking</div>
+                    </div>
+
+                    <!-- Gut Biome -->
+                    <div onclick="showFeature('gut')" class="glass rounded-xl p-4 cursor-pointer hover:border-cyan-500/50 border border-transparent transition">
+                        <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-400 to-teal-600 flex items-center justify-center mb-3">
+                            <i class="fas fa-bacteria text-white"></i>
+                        </div>
+                        <div class="font-bold text-sm">Gut Biome</div>
+                        <div class="text-xs text-gray-500 mt-1">Microbiome AI</div>
+                    </div>
+
+                    <!-- Neurofeedback -->
+                    <div onclick="showFeature('neuro')" class="glass rounded-xl p-4 cursor-pointer hover:border-indigo-500/50 border border-transparent transition">
+                        <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-400 to-purple-600 flex items-center justify-center mb-3">
+                            <i class="fas fa-brain text-white"></i>
+                        </div>
+                        <div class="font-bold text-sm">Neurofeedback</div>
+                        <div class="text-xs text-gray-500 mt-1">Brain training</div>
                     </div>
                 </div>
+
+                <button onclick="showAllFeatures()" class="w-full mt-4 py-3 rounded-xl border border-gray-700 text-gray-400 hover:bg-gray-800 transition text-sm">
+                    View 158+ More Features <i class="fas fa-arrow-right ml-2"></i>
+                </button>
             </div>
         </div>
 
         <!-- AI DOCTOR PAGE -->
-        <div id="aiDoctorPage" class="page">
-            <div class="glass rounded-2xl p-4 mb-4 flex items-center gap-4">
-                <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center ai-pulse shadow-lg shadow-purple-500/30">
-                    <i class="fas fa-user-md text-white text-2xl"></i>
-                </div>
-                <div class="flex-1">
-                    <h2 class="font-bold text-lg">Dr. NutriSync AI</h2>
-                    <p class="text-xs text-gray-400">Board Certified • 24/7 Available</p>
-                </div>
-                <div class="world-first-badge text-white text-xs px-3 py-1 rounded-full font-bold">
-                    WORLD FIRST
-                </div>
-            </div>
-
+        <div id="aiDoctorPage" class="page px-4">
             <div class="glass rounded-2xl p-4 mb-4">
-                <div class="text-sm text-gray-400 mb-3 font-medium">Quick Consultations</div>
-                <div class="grid grid-cols-2 gap-2">
-                    <button onclick="quickAsk('What should I eat for weight loss based on my profile?')" class="bg-gray-800/50 rounded-lg p-3 text-left text-sm hover:bg-purple-500/20 transition border border-gray-700 hover:border-purple-500/50 group">
-                        <i class="fas fa-apple-alt text-green-400 mr-2 group-hover:scale-110 transition inline-block"></i>Weight Loss Plan
-                    </button>
-                    <button onclick="quickAsk('Analyze my sleep quality and provide recommendations')" class="bg-gray-800/50 rounded-lg p-3 text-left text-sm hover:bg-purple-500/20 transition border border-gray-700 hover:border-purple-500/50 group">
-                        <i class="fas fa-moon text-blue-400 mr-2 group-hover:scale-110 transition inline-block"></i>Sleep Analysis
-                    </button>
-                    <button onclick="quickAsk('Design a personalized workout plan')" class="bg-gray-800/50 rounded-lg p-3 text-left text-sm hover:bg-purple-500/20 transition border border-gray-700 hover:border-purple-500/50 group">
-                        <i class="fas fa-dumbbell text-orange-400 mr-2 group-hover:scale-110 transition inline-block"></i>Workout Design
-                    </button>
-                    <button onclick="quickAsk('Explain my HRV data and stress levels')" class="bg-gray-800/50 rounded-lg p-3 text-left text-sm hover:bg-purple-500/20 transition border border-gray-700 hover:border-purple-500/50 group">
-                        <i class="fas fa-heartbeat text-red-400 mr-2 group-hover:scale-110 transition inline-block"></i>HRV Analysis
-                    </button>
+                <div class="flex items-center gap-4">
+                    <div class="w-14 h-14 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center">
+                        <i class="fas fa-user-md text-white text-2xl"></i>
+                    </div>
+                    <div>
+                        <h2 class="font-bold text-xl">Dr. NutriSync AI</h2>
+                        <p class="text-xs text-gray-400">Board Certified • 24/7 Available</p>
+                    </div>
                 </div>
             </div>
 
-            <div id="chatContainer" class="glass rounded-2xl p-4 mb-24 min-h-[400px] max-h-[500px] overflow-y-auto scroll-hide">
+            <div class="grid grid-cols-2 gap-2 mb-4">
+                <button onclick="quickAsk('Create weight loss plan')" class="glass rounded-lg p-3 text-left text-sm hover:bg-purple-500/20 transition">
+                    <i class="fas fa-apple-alt text-green-400 mr-2"></i>Weight Loss
+                </button>
+                <button onclick="quickAsk('Analyze sleep')" class="glass rounded-lg p-3 text-left text-sm hover:bg-purple-500/20 transition">
+                    <i class="fas fa-moon text-blue-400 mr-2"></i>Sleep
+                </button>
+                <button onclick="quickAsk('Workout plan')" class="glass rounded-lg p-3 text-left text-sm hover:bg-purple-500/20 transition">
+                    <i class="fas fa-dumbbell text-orange-400 mr-2"></i>Workout
+                </button>
+                <button onclick="quickAsk('HRV analysis')" class="glass rounded-lg p-3 text-left text-sm hover:bg-purple-500/20 transition">
+                    <i class="fas fa-heartbeat text-red-400 mr-2"></i>HRV
+                </button>
+            </div>
+
+            <div id="chatContainer" class="glass rounded-2xl p-4 mb-20 min-h-[400px] max-h-[500px] overflow-y-auto">
                 <div class="chat-message chat-ai">
                     <div class="flex items-center gap-2 mb-1">
                         <i class="fas fa-robot text-purple-400"></i>
                         <span class="font-bold text-sm">Dr. NutriSync</span>
-                        <span class="text-xs text-gray-500 ml-auto">Just now</span>
                     </div>
-                    <div class="text-sm leading-relaxed">
-                        Welcome to your personal AI medical suite. I have access to your complete health profile including weight trends, BMI calculations, and fitness goals. All conversations are encrypted and HIPAA-compliant. How may I assist your health journey today?
-                    </div>
+                    Welcome to your AI medical suite. How can I assist you today?
                 </div>
             </div>
 
             <div class="fixed bottom-24 left-0 right-0 px-4 max-w-lg mx-auto">
-                <div class="glass-strong rounded-2xl p-2 flex items-center gap-2 border border-purple-500/30 shadow-lg shadow-purple-500/10">
-                    <input type="text" id="chatInput" placeholder="Describe symptoms or ask health questions..." 
-                        class="flex-1 bg-transparent px-4 py-3 text-white outline-none text-sm"
+                <div class="glass rounded-full p-2 flex items-center gap-2 border border-purple-500/30">
+                    <input type="text" id="chatInput" placeholder="Ask anything..." 
+                        class="flex-1 bg-transparent px-4 py-2 text-white outline-none"
                         onkeypress="if(event.key==='Enter')sendMessage()">
-                    <button onclick="sendMessage()" class="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center hover:scale-105 transition shadow-lg">
-                        <i class="fas fa-paper-plane text-white"></i>
+                    <button onclick="sendMessage()" class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center">
+                        <i class="fas fa-paper-plane text-white text-sm"></i>
                     </button>
                 </div>
             </div>
         </div>
 
-        <!-- WORKOUT PAGE -->
-        <div id="workoutPage" class="page">
-            <div class="glass rounded-2xl p-6 mb-6 text-center relative overflow-hidden">
-                <div class="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-red-500/10"></div>
-                <div id="workoutIcon" class="w-24 h-24 mx-auto rounded-3xl bg-gradient-to-br from-orange-400 to-red-600 flex items-center justify-center text-4xl mb-4 shadow-lg shadow-orange-500/30 relative z-10">
-                    <i class="fas fa-dumbbell text-white"></i>
-                </div>
-                <h2 id="workoutTitle" class="text-3xl font-bold mb-2 relative z-10">Select Training</h2>
-                <p class="text-gray-400 relative z-10">Choose your modality</p>
+        <!-- DNA ANALYSIS PAGE -->
+        <div id="dnaPage" class="page px-4">
+            <div class="text-center mb-6">
+                <div class="dna-helix mx-auto mb-4"></div>
+                <h2 class="text-3xl font-bold gradient-text">DNA Analysis</h2>
+                <p class="text-gray-400">Genetic-based nutrition optimization</p>
             </div>
 
-            <div id="workoutContent" class="space-y-3 mb-6">
-                <!-- Dynamic content -->
-            </div>
-            
-            <div class="glass rounded-2xl p-4 mb-6">
-                <div class="flex items-center gap-3 mb-3">
-                    <div class="world-first-badge text-white text-xs px-2 py-1 rounded font-bold">AI FEATURE</div>
-                    <span class="text-sm text-gray-400">Real-time form correction</span>
-                </div>
-                <div class="bg-gray-800/50 rounded-xl p-4 text-center">
-                    <i class="fas fa-camera text-3xl text-gray-600 mb-2"></i>
-                    <p class="text-sm text-gray-500">Camera access required for form analysis</p>
-                    <button class="mt-2 px-4 py-2 rounded-lg bg-gray-700 text-sm hover:bg-gray-600 transition">Enable Camera</button>
-                </div>
-            </div>
-        </div>
-    </main>
-
-    <!-- PROFILE MODAL -->
-    <div id="profileModal" class="fixed inset-0 z-50 glass-strong hidden items-center justify-center p-4">
-        <div class="glass rounded-3xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto border border-cyan-500/20 shadow-2xl shadow-cyan-500/10">
-            <div class="flex items-center justify-between mb-6">
-                <div>
-                    <h2 class="text-2xl font-bold gradient-text">Health Profile</h2>
-                    <p class="text-sm text-gray-400">Your biometric data</p>
-                </div>
-                <button onclick="closeProfileModal()" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-gray-700 transition">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-
-            <div class="space-y-5">
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs text-gray-400 mb-2 uppercase tracking-wider">Age (years)</label>
-                        <input type="number" id="profileAge" class="w-full px-4 py-3 rounded-xl input-field text-lg font-semibold" placeholder="25">
-                    </div>
-                    <div>
-                        <label class="block text-xs text-gray-400 mb-2 uppercase tracking-wider">Height (cm)</label>
-                        <input type="number" id="profileHeight" class="w-full px-4 py-3 rounded-xl input-field text-lg font-semibold" placeholder="175">
-                    </div>
+            <div class="glass rounded-2xl p-6 mb-4 border border-yellow-500/20">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-bold">Genetic Markers</h3>
+                    <span class="text-xs bg-yellow-500/20 text-yellow-400 px-2 py-1 rounded">Analyzed</span>
                 </div>
                 
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs text-gray-400 mb-2 uppercase tracking-wider">Current Weight (kg)</label>
-                        <input type="number" step="0.1" id="profileWeight" class="w-full px-4 py-3 rounded-xl input-field text-lg font-semibold" placeholder="70.0">
-                    </div>
-                    <div>
-                        <label class="block text-xs text-gray-400 mb-2 uppercase tracking-wider">Goal Weight (kg)</label>
-                        <input type="number" step="0.1" id="profileGoalWeight" class="w-full px-4 py-3 rounded-xl input-field text-lg font-semibold" placeholder="65.0">
-                    </div>
-                </div>
-
-                <div class="p-5 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 rounded-2xl border border-cyan-500/20">
-                    <div class="flex items-center justify-between mb-2">
-                        <div class="flex items-center gap-2">
-                            <i class="fas fa-calculator text-cyan-400"></i>
-                            <span class="font-bold">Calculated BMI</span>
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg">
+                        <div>
+                            <div class="font-semibold">FTO Gene</div>
+                            <div class="text-xs text-gray-400">Fat mass & obesity</div>
                         </div>
-                        <span id="bmiCategory" class="text-xs px-2 py-1 rounded-full bg-gray-800 text-gray-400">--</span>
+                        <div class="text-right">
+                            <div class="text-yellow-400 font-bold">Variant AA</div>
+                            <div class="text-xs text-gray-500">High impact</div>
+                        </div>
                     </div>
-                    <div id="calculatedBMI" class="text-4xl font-bold gradient-text">--</div>
-                    <div class="text-xs text-gray-500 mt-2">Based on height and weight</div>
+                    
+                    <div class="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg">
+                        <div>
+                            <div class="font-semibold">MTHFR</div>
+                            <div class="text-xs text-gray-400">Methylation</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-green-400 font-bold">Normal</div>
+                            <div class="text-xs text-gray-500">Low impact</div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg">
+                        <div>
+                            <div class="font-semibold">APOE</div>
+                            <div class="text-xs text-gray-400">Lipid metabolism</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-yellow-400 font-bold">E3/E4</div>
+                            <div class="text-xs text-gray-500">Moderate</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass rounded-2xl p-6 mb-4">
+                <h3 class="font-bold mb-4">Personalized Recommendations</h3>
+                <div class="space-y-3">
+                    <div class="flex gap-3 items-start">
+                        <i class="fas fa-check-circle text-green-400 mt-1"></i>
+                        <div>
+                            <div class="font-semibold text-sm">Low Saturated Fat</div>
+                            <div class="text-xs text-gray-400">Your APOE variant suggests limiting sat fat to <10% calories</div>
+                        </div>
+                    </div>
+                    <div class="flex gap-3 items-start">
+                        <i class="fas fa-check-circle text-green-400 mt-1"></i>
+                        <div>
+                            <div class="font-semibold text-sm">High Protein Breakfast</div>
+                            <div class="text-xs text-gray-400">FTO variant responds well to 30g+ protein within 2 hours of waking</div>
+                        </div>
+                    </div>
+                    <div class="flex gap-3 items-start">
+                        <i class="fas fa-check-circle text-green-400 mt-1"></i>
+                        <div>
+                            <div class="font-semibold text-sm">Active Folate</div>
+                            <div class="text-xs text-gray-400">MTHFR normal but optimize with 5-MTHF 400mcg daily</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button onclick="generateDNAPDF()" class="w-full py-4 rounded-xl bg-gradient-to-r from-yellow-500 to-orange-600 text-white font-bold shadow-lg">
+                <i class="fas fa-file-download mr-2"></i>Download DNA Report
+            </button>
+        </div>
+
+        <!-- VR TRAINING PAGE -->
+        <div id="vrPage" class="page px-4">
+            <div class="text-center mb-6">
+                <i class="fas fa-vr-cardboard text-6xl text-purple-400 mb-4 block"></i>
+                <h2 class="text-3xl font-bold gradient-text">VR Training</h2>
+                <p class="text-gray-400">Immersive fitness environments</p>
+            </div>
+
+            <div class="vr-grid mb-6">
+                <div class="vr-card" onclick="startVR('mountain')">
+                    <i class="fas fa-mountain text-2xl"></i>
+                </div>
+                <div class="vr-card" onclick="startVR('space')">
+                    <i class="fas fa-rocket text-2xl"></i>
+                </div>
+                <div class="vr-card" onclick="startVR('beach')">
+                    <i class="fas fa-umbrella-beach text-2xl"></i>
+                </div>
+                <div class="vr-card" onclick="startVR('forest')">
+                    <i class="fas fa-tree text-2xl"></i>
+                </div>
+                <div class="vr-card" onclick="startVR('city')">
+                    <i class="fas fa-city text-2xl"></i>
+                </div>
+                <div class="vr-card" onclick="startVR('underwater')">
+                    <i class="fas fa-water text-2xl"></i>
+                </div>
+            </div>
+
+            <div class="glass rounded-2xl p-6 mb-4">
+                <h3 class="font-bold mb-4">Current Session</h3>
+                <div id="vrSession" class="text-center py-8 text-gray-500">
+                    Select environment to begin
+                </div>
+                <div id="vrControls" class="hidden grid grid-cols-3 gap-2 mt-4">
+                    <button onclick="pauseVR()" class="py-2 rounded-lg bg-gray-800 text-sm">Pause</button>
+                    <button onclick="stopVR()" class="py-2 rounded-lg bg-red-500/20 text-red-400 text-sm">Stop</button>
+                    <button onclick="intensityVR()" class="py-2 rounded-lg bg-purple-500/20 text-purple-400 text-sm">Intensity</button>
+                </div>
+            </div>
+
+            <div class="glass rounded-2xl p-4">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-sm text-gray-400">Weekly VR Time</span>
+                    <span class="font-bold">4.5 hours</span>
+                </div>
+                <div class="h-2 bg-gray-800 rounded-full overflow-hidden">
+                    <div class="h-full bg-gradient-to-r from-purple-500 to-pink-500 w-[65%]"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FAMILY NETWORK PAGE -->
+        <div id="familyPage" class="page px-4">
+            <div class="text-center mb-6">
+                <i class="fas fa-users text-6xl text-blue-400 mb-4 block"></i>
+                <h2 class="text-3xl font-bold gradient-text">Family Network</h2>
+                <p class="text-gray-400">Connected health tracking</p>
+            </div>
+
+            <div class="glass rounded-2xl p-6 mb-4">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-bold">Family Members</h3>
+                    <button onclick="addFamilyMember()" class="text-sm bg-blue-500/20 text-blue-400 px-3 py-1 rounded-full">
+                        <i class="fas fa-plus mr-1"></i>Add
+                    </button>
                 </div>
                 
-                <div class="p-4 bg-gray-800/30 rounded-xl border border-gray-700">
-                    <div class="flex items-center gap-2 mb-2 text-sm text-gray-400">
-                        <i class="fas fa-info-circle"></i>
-                        <span>Data Privacy</span>
+                <div id="familyList" class="space-y-3">
+                    <div class="flex items-center gap-3 p-3 bg-gray-800/50 rounded-lg">
+                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center">
+                            <i class="fas fa-user text-white"></i>
+                        </div>
+                        <div class="flex-1">
+                            <div class="font-semibold">You</div>
+                            <div class="text-xs text-gray-400">Admin • 72kg</div>
+                        </div>
+                        <div class="w-2 h-2 rounded-full bg-green-400"></div>
                     </div>
-                    <p class="text-xs text-gray-500">All health data is stored locally on your device and encrypted. We never share your biometric information with third parties.</p>
                 </div>
+            </div>
 
-                <button onclick="saveProfile()" class="w-full py-4 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold shadow-lg shadow-cyan-500/25 hover:shadow-cyan-500/40 transition flex items-center justify-center gap-2">
-                    <i class="fas fa-save"></i>
-                    <span>Save Profile Data</span>
+            <div class="glass rounded-2xl p-6 mb-4">
+                <h3 class="font-bold mb-4">Group Challenges</h3>
+                <div class="space-y-3">
+                    <div class="p-3 bg-gradient-to-r from-blue-500/10 to-cyan-500/10 rounded-lg border border-blue-500/20">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-semibold">10K Steps Daily</span>
+                            <span class="text-xs bg-blue-500 text-white px-2 py-0.5 rounded">Active</span>
+                        </div>
+                        <div class="text-xs text-gray-400 mb-2">3 of 4 members completed today</div>
+                        <div class="h-1.5 bg-gray-800 rounded-full overflow-hidden">
+                            <div class="h-full bg-blue-500 w-[75%]"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="p-3 bg-gray-800/30 rounded-lg border border-gray-700">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-semibold">No Sugar Week</span>
+                            <span class="text-xs bg-gray-700 text-gray-400 px-2 py-0.5 rounded">Starts Monday</span>
+                        </div>
+                        <div class="text-xs text-gray-400">4 members joined</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI COACH PAGE -->
+        <div id="coachPage" class="page px-4">
+            <div class="text-center mb-6">
+                <i class="fas fa-robot text-6xl text-green-400 mb-4 block"></i>
+                <h2 class="text-3xl font-bold gradient-text">AI Coach</h2>
+                <p class="text-gray-400">Real-time form correction</p>
+            </div>
+
+            <div class="glass rounded-2xl p-6 mb-4 border border-green-500/20">
+                <div class="aspect-video bg-gray-900 rounded-xl mb-4 flex items-center justify-center relative overflow-hidden">
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <i class="fas fa-camera text-4xl text-gray-700"></i>
+                    </div>
+                    <div class="absolute bottom-4 left-4 right-4">
+                        <div class="bg-black/50 backdrop-blur rounded-lg p-3 text-sm">
+                            <div class="flex items-center gap-2 text-green-400 mb-1">
+                                <i class="fas fa-check-circle"></i>
+                                <span class="font-bold">Form: Excellent</span>
+                            </div>
+                            <div class="text-gray-300 text-xs">Hip alignment optimal • Knee valgus minimal</div>
+                        </div>
+                    </div>
+                    <!-- Skeleton overlay simulation -->
+                    <svg class="absolute inset-0 w-full h-full opacity-30" viewBox="0 0 400 300">
+                        <line x1="200" y1="50" x2="200" y2="150" stroke="#10b981" stroke-width="3" stroke-linecap="round"/>
+                        <line x1="200" y1="100" x2="150" y2="80" stroke="#10b981" stroke-width="3" stroke-linecap="round"/>
+                        <line x1="200" y1="100" x2="250" y2="80" stroke="#10b981" stroke-width="3" stroke-linecap="round"/>
+                        <line x1="200" y1="150" x2="170" y2="220" stroke="#10b981" stroke-width="3" stroke-linecap="round"/>
+                        <line x1="200" y1="150" x2="230" y2="220" stroke="#10b981" stroke-width="3" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                
+                <div class="grid grid-cols-3 gap-2 text-center">
+                    <div class="bg-gray-800/50 rounded-lg p-2">
+                        <div class="text-2xl font-bold text-green-400">94%</div>
+                        <div class="text-xs text-gray-400">Form Score</div>
+                    </div>
+                    <div class="bg-gray-800/50 rounded-lg p-2">
+                        <div class="text-2xl font-bold text-blue-400">12</div>
+                        <div class="text-xs text-gray-400">Reps Count</div>
+                    </div>
+                    <div class="bg-gray-800/50 rounded-lg p-2">
+                        <div class="text-2xl font-bold text-purple-400">340</div>
+                        <div class="text-xs text-gray-400">Calories</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-2">
+                <button onclick="startCoaching('squat')" class="w-full py-3 rounded-xl bg-gray-800 hover:bg-gray-700 transition flex items-center justify-between px-4">
+                    <span><i class="fas fa-walking mr-2 text-green-400"></i>Squat Form</span>
+                    <i class="fas fa-chevron-right text-gray-500"></i>
+                </button>
+                <button onclick="startCoaching('deadlift')" class="w-full py-3 rounded-xl bg-gray-800 hover:bg-gray-700 transition flex items-center justify-between px-4">
+                    <span><i class="fas fa-dumbbell mr-2 text-blue-400"></i>Deadlift Form</span>
+                    <i class="fas fa-chevron-right text-gray-500"></i>
+                </button>
+                <button onclick="startCoaching('yoga')" class="w-full py-3 rounded-xl bg-gray-800 hover:bg-gray-700 transition flex items-center justify-between px-4">
+                    <span><i class="fas fa-spa mr-2 text-purple-400"></i>Yoga Alignment</span>
+                    <i class="fas fa-chevron-right text-gray-500"></i>
                 </button>
             </div>
         </div>
-    </div>
 
-    <!-- PRO ACCESS MODAL -->
-    <div id="proAccessModal" class="fixed inset-0 z-[70] glass-strong hidden items-center justify-center p-4">
-        <div class="glass rounded-3xl p-8 w-full max-w-sm text-center border border-yellow-500/20">
-            <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-yellow-400 to-orange-600 flex items-center justify-center text-3xl shadow-lg shadow-orange-500/30">
-                <i class="fas fa-crown text-white"></i>
+        <!-- CLINICAL REPORTS PAGE -->
+        <div id="reportsPage" class="page px-4">
+            <div class="text-center mb-6">
+                <i class="fas fa-file-medical text-6xl text-red-400 mb-4 block"></i>
+                <h2 class="text-3xl font-bold gradient-text">Clinical Reports</h2>
+                <p class="text-gray-400">Medical-grade documentation</p>
             </div>
-            <h3 class="text-2xl font-bold mb-2">Pro Suite Locked</h3>
-            <p class="text-gray-400 text-sm mb-6">Enter access credentials to unlock 174+ premium features</p>
-            
-            <input type="text" id="modalAccessInput" placeholder="Enter code..." 
-                class="w-full px-4 py-3 rounded-xl input-field text-center mb-4"
-                onkeypress="if(event.key==='Enter')validateModalAccess()">
-            
-            <div class="flex gap-3">
-                <button onclick="closeProAccessModal()" class="flex-1 py-3 rounded-xl border border-gray-600 text-gray-400 hover:bg-gray-800 transition">Cancel</button>
-                <button onclick="validateModalAccess()" class="flex-1 py-3 rounded-xl bg-gradient-to-r from-yellow-500 to-orange-600 text-white font-bold shadow-lg">Unlock</button>
+
+            <div class="space-y-3 mb-6">
+                <div class="glass rounded-xl p-4 border border-red-500/20">
+                    <div class="flex items-center justify-between mb-2">
+                        <div>
+                            <div class="font-bold">90-Day Metabolic Panel</div>
+                            <div class="text-xs text-gray-400">Generated Jan 15, 2026</div>
+                        </div>
+                        <i class="fas fa-file-pdf text-3xl text-red-400"></i>
+                    </div>
+                    <button onclick="downloadReport('metabolic')" class="w-full py-2 rounded-lg bg-red-500/20 text-red-400 text-sm font-semibold">
+                        <i class="fas fa-download mr-2"></i>Download PDF
+                    </button>
+                </div>
+
+                <div class="glass rounded-xl p-4 border border-gray-700">
+                    <div class="flex items-center justify-between mb-2">
+                        <div>
+                            <div class="font-bold">Body Composition Analysis</div>
+                            <div class="text-xs text-gray-400">Generated Jan 10, 2026</div>
+                        </div>
+                        <i class="fas fa-file-pdf text-3xl text-gray-500"></i>
+                    </div>
+                    <button onclick="downloadReport('bodycomp')" class="w-full py-2 rounded-lg bg-gray-800 text-gray-400 text-sm font-semibold">
+                        <i class="fas fa-download mr-2"></i>Download PDF
+                    </button>
+                </div>
+
+                <div class="glass rounded-xl p-4 border border-gray-700">
+                    <div class="flex items-center justify-between mb-2">
+                        <div>
+                            <div class="font-bold">Sleep Architecture Report</div>
+                            <div class="text-xs text-gray-400">Generated Jan 5, 2026</div>
+                        </div>
+                        <i class="fas fa-file-pdf text-3xl text-gray-500"></i>
+                    </div>
+                    <button onclick="downloadReport('sleep')" class="w-full py-2 rounded-lg bg-gray-800 text-gray-400 text-sm font-semibold">
+                        <i class="fas fa-download mr-2"></i>Download PDF
+                    </button>
+                </div>
+            </div>
+
+            <button onclick="generateNewReport()" class="w-full py-4 rounded-xl bg-gradient-to-r from-red-500 to-rose-600 text-white font-bold shadow-lg">
+                <i class="fas fa-plus-circle mr-2"></i>Generate New Report
+            </button>
+        </div>
+
+        <!-- HRV MONITOR PAGE -->
+        <div id="hrvPage" class="page px-4">
+            <div class="text-center mb-6">
+                <i class="fas fa-heartbeat text-6xl text-pink-400 mb-4 block animate-pulse"></i>
+                <h2 class="text-3xl font-bold gradient-text">HRV Monitor</h2>
+                <p class="text-gray-400">Autonomic nervous system tracking</p>
+            </div>
+
+            <div class="glass rounded-2xl p-6 mb-4 border border-pink-500/20">
+                <div class="flex justify-between items-end mb-4">
+                    <div>
+                        <div class="text-gray-400 text-sm mb-1">Current RMSSD</div>
+                        <div class="text-5xl font-bold text-pink-400" id="hrvValue">45</div>
+                        <div class="text-sm text-gray-400">ms</div>
+                    </div>
+                    <div class="text-right">
+                        <div class="inline-block px-3 py-1 rounded-full bg-yellow-500/20 text-yellow-400 text-sm font-bold">
+                            Moderate
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="hrv-graph mb-4">
+                    <div class="hrv-line"></div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-2 text-center text-xs">
+                    <div class="bg-gray-800/50 rounded-lg p-2">
+                        <div class="text-gray-400">LF/HF</div>
+                        <div class="font-bold text-lg">2.4</div>
+                    </div>
+                    <div class="bg-gray-800/50 rounded-lg p-2">
+                        <div class="text-gray-400">pNN50</div>
+                        <div class="font-bold text-lg">12%</div>
+                    </div>
+                    <div class="bg-gray-800/50 rounded-lg p-2">
+                        <div class="text-gray-400">SDNN</div>
+                        <div class="font-bold text-lg">38ms</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass rounded-2xl p-6">
+                <h3 class="font-bold mb-4">Stress Recommendations</h3>
+                <div class="space-y-3">
+                    <div class="flex items-center gap-3 p-3 bg-pink-500/10 rounded-lg border border-pink-500/20">
+                        <i class="fas fa-wind text-pink-400 text-xl"></i>
+                        <div class="flex-1">
+                            <div class="font-semibold text-sm">Resonant Breathing</div>
+                            <div class="text-xs text-gray-400">5.5 breaths/min for 10 mins</div>
+                        </div>
+                        <button onclick="startBreathingProtocol()" class="px-3 py-1 rounded-full bg-pink-500 text-white text-xs">Start</button>
+                    </div>
+                    <div class="flex items-center gap-3 p-3 bg-blue-500/10 rounded-lg border border-blue-500/20">
+                        <i class="fas fa-bed text-blue-400 text-xl"></i>
+                        <div class="flex-1">
+                            <div class="font-semibold text-sm">Sleep Extension</div>
+                            <div class="text-xs text-gray-400">Target 8+ hours tonight</div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
+
+        <!-- GUT BIOME PAGE -->
+        <div id="gutPage" class="page px-4">
+            <div class="text-center mb-6">
+                <i class="fas fa-bacteria text-6xl text-teal-400 mb-4 block"></i>
+                <h2 class="text-3xl font-bold gradient-text">Gut Biome</h2>
+                <p class="text-gray-400">Microbiome analysis & optimization</p>
+            </div>
+
+            <div class="glass rounded-2xl p-6 mb-4 border border-teal-500/20 relative overflow-hidden" style="height: 200px;">
+                <div class="absolute inset-0" id="bacteriaContainer">
+                    <!-- Bacteria animated via JS -->
+                </div>
+                <div class="relative z-10 text-center pt-8">
+                    <div class="text-4xl font-bold text-teal-400 mb-2">84%</div>
+                    <div class="text-sm text-gray-300">Microbiome Diversity Score</div>
+                    <div class="text-xs text-gray-400 mt-1">Optimal range: 80-95%</div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 mb-4">
+                <div class="glass rounded-xl p-3 text-center">
+                    <div class="text-2xl font-bold text-green-400">Firmicutes</div>
+                    <div class="text-xs text-gray-400">62% • Normal</div>
+                </div>
+                <div class="glass rounded-xl p-3 text-center">
+                    <div class="text-2xl font-bold text-blue-400">Bacteroidetes</div>
+                    <div class="text-xs text-gray-400">28% • Normal</div>
+                </div>
+                <div class="glass rounded-xl p-3 text-center">
+                    <div class="text-2xl font-bold text-yellow-400">Actinobacteria</div>
+                    <div class="text-xs text-gray-400">7% • Low</div>
+                </div>
+                <div class="glass rounded-xl p-3 text-center">
+                    <div class="text-2xl font-bold text-purple-400">Proteobacteria</div>
+                    <div class="text-xs text-gray-400">3% • Optimal</div>
+                </div>
+            </div>
+
+            <div class="glass rounded-2xl p-6">
+                <h3 class="font-bold mb-4">Biome-Friendly Foods</h3>
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between p-2 bg-gray-800/50 rounded-lg">
+                        <span class="text-sm"><i class="fas fa-check text-green-400 mr-2"></i>Kimchi (Lactobacillus)</span>
+                        <span class="text-xs text-teal-400">+15% diversity</span>
+                    </div>
+                    <div class="flex items-center justify-between p-2 bg-gray-800/50 rounded-lg">
+                        <span class="text-sm"><i class="fas fa-check text-green-400 mr-2"></i>Jerusalem Artichoke</span>
+                        <span class="text-xs text-teal-400">Inulin fiber</span>
+                    </div>
+                    <div class="flex items-center justify-between p-2 bg-gray-800/50 rounded-lg">
+                        <span class="text-sm"><i class="fas fa-check text-green-400 mr-2"></i>Kefir (Multi-strain)</span>
+                        <span class="text-xs text-teal-400">12 species</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- NEUROFEEDBACK PAGE -->
+        <div id="neuroPage" class="page px-4">
+            <div class="text-center mb-6">
+                <i class="fas fa-brain text-6xl text-indigo-400 mb-4 block"></i>
+                <h2 class="text-3xl font-bold gradient-text">Neurofeedback</h2>
+                <p class="text-gray-400">EEG-based brain training</p>
+            </div>
+
+            <div class="glass rounded-2xl p-6 mb-4 border border-indigo-500/20">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <div class="text-gray-400 text-sm">Current State</div>
+                        <div class="text-2xl font-bold text-indigo-400" id="brainState">Focused</div>
+                    </div>
+                    <div class="w-16 h-16 rounded-full border-4 border-indigo-500/30 border-t-indigo-400 animate-spin"></div>
+                </div>
+
+                <div class="space-y-3">
+                    <div>
+                        <div class="flex justify-between text-sm mb-1">
+                            <span class="text-gray-400">Beta (13-30Hz)</span>
+                            <span class="text-indigo-400">Active</span>
+                        </div>
+                        <div class="h-2 bg-gray-800 rounded-full overflow-hidden">
+                            <div class="h-full bg-indigo-400 w-[75%] animate-pulse"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-sm mb-1">
+                            <span class="text-gray-400">Alpha (8-13Hz)</span>
+                            <span class="text-purple-400">Relaxed</span>
+                        </div>
+                        <div class="h-2 bg-gray-800 rounded-full overflow-hidden">
+                            <div class="h-full bg-purple-400 w-[45%]"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-sm mb-1">
+                            <span class="text-gray-400">Theta (4-8Hz)</span>
+                            <span class="text-blue-400">Deep</span>
+                        </div>
+                        <div class="h-2 bg-gray-800 rounded-full overflow-hidden">
+                            <div class="h-full bg-blue-400 w-[20%]"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <button onclick="startNeuroProtocol('focus')" class="glass rounded-xl p-4 text-center hover:border-indigo-500/50 transition border border-transparent">
+                    <i class="fas fa-bullseye text-3xl text-indigo-400 mb-2 block"></i>
+                    <div class="font-bold text-sm">Focus</div>
+                    <div class="text-xs text-gray-400">40Hz gamma</div>
+                </button>
+                <button onclick="startNeuroProtocol('relax')" class="glass rounded-xl p-4 text-center hover:border-purple-500/50 transition border border-transparent">
+                    <i class="fas fa-spa text-3xl text-purple-400 mb-2 block"></i>
+                    <div class="font-bold text-sm">Relax</div>
+                    <div class="text-xs text-gray-400">10Hz alpha</div>
+                </button>
+                <button onclick="startNeuroProtocol('sleep')" class="glass rounded-xl p-4 text-center hover:border-blue-500/50 transition border border-transparent">
+                    <i class="fas fa-bed text-3xl text-blue-400 mb-2 block"></i>
+                    <div class="font-bold text-sm">Sleep</div>
+                    <div class="text-xs text-gray-400">4Hz delta</div>
+                </button>
+                <button onclick="startNeuroProtocol('creativity')" class="glass rounded-xl p-4 text-center hover:border-pink-500/50 transition border border-transparent">
+                    <i class="fas fa-lightbulb text-3xl text-pink-400 mb-2 block"></i>
+                    <div class="font-bold text-sm">Create</div>
+                    <div class="text-xs text-gray-400">7.83Hz Schumann</div>
+                </button>
+            </div>
+        </div>
+
+        <!-- ALL FEATURES LIST PAGE -->
+        <div id="allFeaturesPage" class="page px-4">
+            <div class="flex items-center gap-4 mb-6">
+                <button onclick="goBack()" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+                <div>
+                    <h2 class="text-2xl font-bold">All Features</h2>
+                    <p class="text-sm text-gray-400">174+ Premium Tools</p>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <input type="text" placeholder="Search features..." 
+                    class="w-full px-4 py-3 rounded-xl bg-gray-800/50 border border-gray-700 focus:border-cyan-500 focus:outline-none"
+                    oninput="searchFeatures(this.value)">
+            </div>
+
+            <div id="featuresList" class="space-y-2 max-h-[600px] overflow-y-auto">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+
     </div>
 
-    <!-- Bottom Navigation -->
-    <nav class="fixed bottom-0 w-full z-40 glass-strong border-t border-gray-800 pb-safe">
-        <div class="max-w-lg mx-auto px-6 py-3 flex justify-around">
-            <button onclick="showPage('home')" class="nav-item active flex flex-col items-center gap-1 text-gray-500 hover:text-cyan-400 transition" data-page="home">
-                <i class="fas fa-home text-xl transition-transform"></i>
-                <span class="text-[10px] font-medium">Home</span>
+    <!-- BOTTOM NAV -->
+    <nav class="fixed bottom-0 w-full max-w-lg mx-auto left-0 right-0 z-40 glass-strong border-t border-gray-800">
+        <div class="flex justify-around py-3">
+            <button onclick="showPage('home')" class="nav-item active flex flex-col items-center gap-1 text-gray-500" data-page="home">
+                <i class="fas fa-home text-xl"></i>
+                <span class="text-[10px]">Home</span>
             </button>
-            <button onclick="showPage('aiDoctor')" class="nav-item flex flex-col items-center gap-1 text-gray-500 hover:text-purple-400 transition" data-page="aiDoctor">
-                <i class="fas fa-user-md text-xl transition-transform"></i>
-                <span class="text-[10px] font-medium">AI Doctor</span>
+            <button onclick="showPage('aiDoctor')" class="nav-item flex flex-col items-center gap-1 text-gray-500" data-page="aiDoctor">
+                <i class="fas fa-user-md text-xl"></i>
+                <span class="text-[10px]">AI Doctor</span>
             </button>
-            <button onclick="showPage('workout')" class="nav-item flex flex-col items-center gap-1 text-gray-500 hover:text-orange-400 transition" data-page="workout">
-                <i class="fas fa-dumbbell text-xl transition-transform"></i>
-                <span class="text-[10px] font-medium">Train</span>
+            <button onclick="showFeature('coach')" class="nav-item flex flex-col items-center gap-1 text-gray-500">
+                <i class="fas fa-dumbbell text-xl"></i>
+                <span class="text-[10px]">Train</span>
             </button>
-            <button onclick="promptProAccess()" class="nav-item flex flex-col items-center gap-1 text-gray-500 hover:text-yellow-400 transition">
-                <i class="fas fa-crown text-xl transition-transform"></i>
-                <span class="text-[10px] font-medium">Pro</span>
+            <button onclick="showProStatus()" class="nav-item flex flex-col items-center gap-1 text-gray-500">
+                <i class="fas fa-crown text-xl"></i>
+                <span class="text-[10px]">Pro</span>
             </button>
         </div>
     </nav>
 
     <script>
-        // Global State
+        // State
         let isPro = false;
-        let profile = {
-            age: null,
-            height: null,
-            weight: null,
-            goalWeight: null
-        };
+        let profile = { age: null, height: null, weight: null, goalWeight: null };
         let weightHistory = [];
-        let breathingInterval;
-        let breathingTime = 0;
         let weightChart = null;
-        
-        // SECRET ACCESS SYSTEM - Completely Hidden
+        let currentPage = 'home';
+        let pageHistory = [];
+
+        // Secret Code System
         const ACCESS_CODE = 'architect_x_2025';
         let keyBuffer = '';
         let bufferTimer = null;
-        
-        // Hidden global key listener - no visual feedback
+
         document.addEventListener('keydown', (e) => {
             keyBuffer += e.key.toLowerCase();
-            
-            // Clear buffer after 2 seconds of inactivity
             clearTimeout(bufferTimer);
             bufferTimer = setTimeout(() => { keyBuffer = ''; }, 2000);
-            
-            // Trim buffer to code length
-            if (keyBuffer.length > ACCESS_CODE.length) {
-                keyBuffer = keyBuffer.slice(-ACCESS_CODE.length);
-            }
-            
-            // Silent unlock
+            if (keyBuffer.length > ACCESS_CODE.length) keyBuffer = keyBuffer.slice(-ACCESS_CODE.length);
             if (keyBuffer === ACCESS_CODE) {
                 unlockPro();
                 keyBuffer = '';
             }
         });
-        
-        // Initialize
+
+        // Initialization
         window.onload = () => {
             loadData();
             checkProStatus();
             updateDashboard();
             initChart();
+            populateAllFeatures();
         };
-        
-        // Data Persistence
-        function saveData() {
-            localStorage.setItem('nutrisync_profile', JSON.stringify(profile));
-            localStorage.setItem('nutrisync_weightHistory', JSON.stringify(weightHistory));
-            localStorage.setItem('nutrisync_pro', isPro);
-        }
-        
+
         function loadData() {
-            const savedProfile = localStorage.getItem('nutrisync_profile');
-            const savedHistory = localStorage.getItem('nutrisync_weightHistory');
+            const saved = localStorage.getItem('nutrisync_profile');
+            const savedHistory = localStorage.getItem('nutrisync_history');
             const savedPro = localStorage.getItem('nutrisync_pro');
-            
-            if (savedProfile) profile = JSON.parse(savedProfile);
+            if (saved) profile = JSON.parse(saved);
             if (savedHistory) weightHistory = JSON.parse(savedHistory);
             if (savedPro === 'true') isPro = true;
         }
-        
+
+        function saveData() {
+            localStorage.setItem('nutrisync_profile', JSON.stringify(profile));
+            localStorage.setItem('nutrisync_history', JSON.stringify(weightHistory));
+            localStorage.setItem('nutrisync_pro', isPro);
+        }
+
         function checkProStatus() {
             if (isPro) {
-                unlockPro(false); // Silent unlock on load
+                unlockPro(false);
+                document.getElementById('accessOverlay').classList.add('hidden');
             }
         }
-        
-        // Access Validation - No hints in error messages
+
         function validateAccess() {
             const input = document.getElementById('accessCodeInput').value.trim();
             if (input === ACCESS_CODE) {
                 unlockPro();
-                document.getElementById('accessOverlay').classList.add('access-overlay-hidden');
-                setTimeout(() => {
-                    document.getElementById('accessOverlay').classList.add('hidden');
-                }, 500);
+                document.getElementById('accessOverlay').classList.add('hidden');
             } else {
-                const error = document.getElementById('accessError');
-                error.classList.remove('hidden');
-                document.getElementById('accessCodeInput').classList.add('border-red-500');
-                setTimeout(() => {
-                    error.classList.add('hidden');
-                    document.getElementById('accessCodeInput').classList.remove('border-red-500');
-                }, 3000);
+                document.getElementById('accessError').classList.remove('hidden');
+                setTimeout(() => document.getElementById('accessError').classList.add('hidden'), 3000);
             }
         }
-        
+
         function continueLimited() {
-            document.getElementById('accessOverlay').classList.add('access-overlay-hidden');
-            setTimeout(() => {
-                document.getElementById('accessOverlay').classList.add('hidden');
-            }, 500);
+            document.getElementById('accessOverlay').classList.add('hidden');
         }
-        
+
         function unlockPro(showToast = true) {
             isPro = true;
             saveData();
-            
-            // UI Updates
             document.getElementById('proBadge').classList.remove('hidden');
-            document.getElementById('proFeatures').classList.remove('locked');
-            document.getElementById('proFeatures').classList.add('unlocked', 'neon-border');
-            document.getElementById('proLockBtn').innerHTML = '<i class="fas fa-check mr-1"></i> Unlocked';
-            document.getElementById('proLockBtn').classList.add('text-green-400');
+            document.getElementById('proFeaturesGrid').classList.remove('locked');
+            document.getElementById('proFeaturesGrid').classList.add('unlocked');
             
-            // Show toast
             if (showToast) {
-                const toast = document.getElementById('proToast');
-                toast.classList.add('show');
-                setTimeout(() => toast.classList.remove('show'), 4000);
-            }
-            
-            // Enable all pro features
-            document.querySelectorAll('.pro-feature-item').forEach(item => {
-                item.classList.add('cursor-pointer', 'hover:bg-gray-700/50');
-            });
-        }
-        
-        // Pro Access Prompt (for UI buttons)
-        function promptProAccess() {
-            if (isPro) {
-                document.getElementById('homePage').classList.add('active');
-                document.getElementById('proFeatures').scrollIntoView({ behavior: 'smooth' });
-            } else {
-                document.getElementById('proAccessModal').classList.remove('hidden');
-                document.getElementById('proAccessModal').classList.add('flex');
-                document.getElementById('modalAccessInput').focus();
+                document.getElementById('proToast').classList.add('show');
+                setTimeout(() => document.getElementById('proToast').classList.remove('show'), 4000);
             }
         }
-        
-        function closeProAccessModal() {
-            document.getElementById('proAccessModal').classList.add('hidden');
-            document.getElementById('proAccessModal').classList.remove('flex');
-        }
-        
-        function validateModalAccess() {
-            const input = document.getElementById('modalAccessInput').value.trim();
-            if (input === ACCESS_CODE) {
-                unlockPro();
-                closeProAccessModal();
+
+        function showProStatus() {
+            if (!isPro) {
+                document.getElementById('accessOverlay').classList.remove('hidden');
             } else {
-                document.getElementById('modalAccessInput').classList.add('border-red-500');
+                showPage('home');
                 setTimeout(() => {
-                    document.getElementById('modalAccessInput').classList.remove('border-red-500');
-                }, 2000);
+                    document.getElementById('proFeaturesGrid').scrollIntoView({ behavior: 'smooth' });
+                }, 100);
             }
         }
-        
-        // Page Navigation
-        function showPage(pageName) {
+
+        // Navigation System
+        function showPage(page) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             
-            if (pageName === 'home') {
+            if (page === 'home') {
                 document.getElementById('homePage').classList.add('active');
                 document.querySelector('[data-page="home"]').classList.add('active');
-                document.getElementById('pageTitle').textContent = 'Command Center';
-            } else if (pageName === 'aiDoctor') {
+                updateHeader('Command Center', 'Your health ecosystem');
+            } else if (page === 'aiDoctor') {
+                if (!isPro) { showProStatus(); return; }
                 document.getElementById('aiDoctorPage').classList.add('active');
                 document.querySelector('[data-page="aiDoctor"]').classList.add('active');
-                document.getElementById('pageTitle').textContent = 'AI Doctor';
-            } else if (pageName === 'workout') {
-                document.getElementById('workoutPage').classList.add('active');
-                document.querySelector('[data-page="workout"]').classList.add('active');
-                document.getElementById('pageTitle').textContent = 'Training';
-            }
-        }
-        
-        // Profile Management
-        function openProfileModal() {
-            document.getElementById('profileModal').classList.remove('hidden');
-            document.getElementById('profileModal').classList.add('flex');
-            
-            if (profile.age) document.getElementById('profileAge').value = profile.age;
-            if (profile.height) document.getElementById('profileHeight').value = profile.height;
-            if (profile.weight) document.getElementById('profileWeight').value = profile.weight;
-            if (profile.goalWeight) document.getElementById('profileGoalWeight').value = profile.goalWeight;
-            
-            calculateBMI();
-        }
-        
-        function closeProfileModal() {
-            document.getElementById('profileModal').classList.add('hidden');
-            document.getElementById('profileModal').classList.remove('flex');
-        }
-        
-        function saveProfile() {
-            profile.age = parseFloat(document.getElementById('profileAge').value) || null;
-            profile.height = parseFloat(document.getElementById('profileHeight').value) || null;
-            const newWeight = parseFloat(document.getElementById('profileWeight').value) || null;
-            profile.goalWeight = parseFloat(document.getElementById('profileGoalWeight').value) || null;
-            
-            // Log weight change if different
-            if (newWeight && newWeight !== profile.weight) {
-                profile.weight = newWeight;
-                weightHistory.push({
-                    date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-                    weight: newWeight,
-                    timestamp: Date.now()
-                });
-                // Keep only last 30 entries
-                if (weightHistory.length > 30) weightHistory.shift();
-            } else {
-                profile.weight = newWeight;
+                updateHeader('AI Doctor', 'Medical intelligence');
             }
             
-            saveData();
-            updateDashboard();
-            updateChart();
-            closeProfileModal();
-            
-            // Success feedback
-            const btn = event.target;
-            const originalHTML = btn.innerHTML;
-            btn.innerHTML = '<i class="fas fa-check-circle mr-2"></i>Profile Saved';
-            btn.classList.add('bg-green-600');
-            setTimeout(() => {
-                btn.innerHTML = originalHTML;
-                btn.classList.remove('bg-green-600');
-            }, 2000);
+            currentPage = page;
         }
-        
-        function calculateBMI() {
-            const height = parseFloat(document.getElementById('profileHeight').value);
-            const weight = parseFloat(document.getElementById('profileWeight').value);
+
+        function showFeature(feature) {
+            if (!isPro && feature !== 'profile') {
+                showProStatus();
+                return;
+            }
             
-            if (height && weight) {
-                const bmi = (weight / ((height/100) ** 2)).toFixed(1);
-                document.getElementById('calculatedBMI').textContent = bmi;
+            pageHistory.push(currentPage);
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            
+            const featurePages = {
+                'dna': 'dnaPage',
+                'vr': 'vrPage',
+                'family': 'familyPage',
+                'coach': 'coachPage',
+                'reports': 'reportsPage',
+                'hrv': 'hrvPage',
+                'gut': 'gutPage',
+                'neuro': 'neuroPage',
+                'aiDoctor': 'aiDoctorPage'
+            };
+            
+            if (featurePages[feature]) {
+                document.getElementById(featurePages[feature]).classList.add('active');
+                document.getElementById('backBtn').classList.remove('hidden');
                 
-                let category = '';
-                let colorClass = '';
-                if (bmi < 18.5) { category = 'Underweight'; colorClass = 'text-blue-400'; }
-                else if (bmi < 25) { category = 'Normal'; colorClass = 'text-green-400'; }
-                else if (bmi < 30) { category = 'Overweight'; colorClass = 'text-yellow-400'; }
-                else { category = 'Obese'; colorClass = 'text-red-400'; }
-                
-                document.getElementById('bmiCategory').textContent = category;
-                document.getElementById('bmiCategory').className = `text-xs px-2 py-1 rounded-full bg-gray-800 ${colorClass}`;
+                const titles = {
+                    'dna': 'DNA Analysis',
+                    'vr': 'VR Training',
+                    'family': 'Family Network',
+                    'coach': 'AI Coach',
+                    'reports': 'Clinical Reports',
+                    'hrv': 'HRV Monitor',
+                    'gut': 'Gut Biome',
+                    'neuro': 'Neurofeedback',
+                    'aiDoctor': 'AI Doctor'
+                };
+                updateHeader(titles[feature], 'Pro Feature');
             }
         }
-        
-        document.getElementById('profileHeight').addEventListener('input', calculateBMI);
-        document.getElementById('profileWeight').addEventListener('input', calculateBMI);
-        
+
+        function goBack() {
+            const prev = pageHistory.pop() || 'home';
+            showPage(prev);
+            document.getElementById('backBtn').classList.add('hidden');
+        }
+
+        function updateHeader(title, subtitle) {
+            document.getElementById('pageTitle').textContent = title;
+            document.getElementById('pageSubtitle').textContent = subtitle;
+        }
+
+        // Dashboard
         function updateDashboard() {
-            document.getElementById('displayWeight').textContent = profile.weight ? profile.weight.toFixed(1) + ' kg' : '--';
-            document.getElementById('displayGoalWeight').textContent = profile.goalWeight ? profile.goalWeight.toFixed(1) + ' kg' : '--';
-            
-            if (profile.weight && profile.goalWeight) {
-                const diff = Math.abs(profile.weight - profile.goalWeight).toFixed(1);
-                const toGo = profile.weight > profile.goalWeight ? 'to lose' : 'to gain';
-                document.getElementById('lbsToGo').innerHTML = `<span class="text-cyan-400 font-bold">${diff} kg</span> ${toGo}`;
-            }
+            document.getElementById('displayWeight').textContent = profile.weight ? profile.weight + ' kg' : '--';
+            document.getElementById('displayGoalWeight').textContent = profile.goalWeight ? profile.goalWeight + ' kg' : '--';
             
             if (profile.height && profile.weight) {
                 const bmi = (profile.weight / ((profile.height/100) ** 2)).toFixed(1);
                 document.getElementById('displayBMI').textContent = bmi;
-                
-                let status = '';
-                let color = '';
-                if (bmi < 18.5) { status = 'Underweight'; color = 'text-blue-400'; }
-                else if (bmi < 25) { status = 'Healthy'; color = 'text-green-400'; }
-                else if (bmi < 30) { status = 'Overweight'; color = 'text-yellow-400'; }
-                else { status = 'Obese'; color = 'text-red-400'; }
-                
-                document.getElementById('bmiStatus').innerHTML = `<span class="${color} font-medium">${status}</span>`;
-            }
-            
-            // Update trend
-            if (weightHistory.length >= 2) {
-                const current = weightHistory[weightHistory.length - 1].weight;
-                const previous = weightHistory[weightHistory.length - 2].weight;
-                const diff = (current - previous).toFixed(1);
-                
-                if (diff < 0) {
-                    document.getElementById('weightTrend').innerHTML = `<span class="text-green-400"><i class="fas fa-arrow-down mr-1"></i>${Math.abs(diff)} kg</span>`;
-                } else if (diff > 0) {
-                    document.getElementById('weightTrend').innerHTML = `<span class="text-red-400"><i class="fas fa-arrow-up mr-1"></i>${diff} kg</span>`;
-                } else {
-                    document.getElementById('weightTrend').innerHTML = `<span class="text-gray-500"><i class="fas fa-minus mr-1"></i>No change</span>`;
-                }
             }
         }
-        
-        // Chart.js
+
         function initChart() {
-            updateChart();
-        }
-        
-        function updateChart() {
             const ctx = document.getElementById('weightChart').getContext('2d');
-            
-            if (weightChart) weightChart.destroy();
-            
-            const labels = weightHistory.map(h => h.date);
-            const data = weightHistory.map(h => h.weight);
-            
             weightChart = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: labels,
+                    labels: weightHistory.map(h => h.date),
                     datasets: [{
-                        label: 'Weight (kg)',
-                        data: data,
+                        label: 'Weight',
+                        data: weightHistory.map(h => h.weight),
                         borderColor: '#06b6d4',
-                        backgroundColor: (context) => {
-                            const ctx = context.chart.ctx;
-                            const gradient = ctx.createLinearGradient(0, 0, 0, 200);
-                            gradient.addColorStop(0, 'rgba(6, 182, 212, 0.3)');
-                            gradient.addColorStop(1, 'rgba(6, 182, 212, 0)');
-                            return gradient;
-                        },
-                        borderWidth: 3,
+                        backgroundColor: 'rgba(6, 182, 212, 0.1)',
                         fill: true,
-                        tension: 0.4,
-                        pointBackgroundColor: '#06b6d4',
-                        pointBorderColor: '#fff',
-                        pointBorderWidth: 2,
-                        pointRadius: 4,
-                        pointHoverRadius: 6
+                        tension: 0.4
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            backgroundColor: 'rgba(15, 23, 42, 0.9)',
-                            titleColor: '#06b6d4',
-                            bodyColor: '#fff',
-                            borderColor: 'rgba(6, 182, 212, 0.3)',
-                            borderWidth: 1,
-                            cornerRadius: 8,
-                            displayColors: false
-                        }
-                    },
+                    plugins: { legend: { display: false } },
                     scales: {
-                        y: {
-                            grid: { color: 'rgba(255,255,255,0.05)' },
-                            ticks: { color: '#9ca3af', font: { size: 10 } }
-                        },
-                        x: {
-                            grid: { display: false },
-                            ticks: { color: '#9ca3af', font: { size: 10 }, maxRotation: 45 }
-                        }
-                    },
-                    interaction: {
-                        intersect: false,
-                        mode: 'index'
+                        y: { grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { color: '#9ca3af' } },
+                        x: { grid: { display: false }, ticks: { color: '#9ca3af' } }
                     }
                 }
             });
         }
-        
-        // Breathing Exercise
-        let breathingActive = false;
-        function toggleBreathing() {
-            breathingActive = !breathingActive;
-            const btn = document.getElementById('breathingBtn');
-            const text = document.getElementById('breathingText');
-            
-            if (breathingActive) {
-                text.textContent = 'INHALE';
-                btn.style.animation = 'breathe 4s ease-in-out infinite';
-                startBreathingCycle();
-                startBreathingTimer();
-            } else {
-                text.textContent = 'START';
-                btn.style.animation = 'none';
-                clearInterval(breathingInterval);
-                document.getElementById('breathingTimer').textContent = '00:00';
-                breathingTime = 0;
-            }
-        }
-        
-        function startBreathingCycle() {
-            let phase = 0; // 0: inhale, 1: hold, 2: exhale, 3: hold
-            const text = document.getElementById('breathingText');
-            
-            const cycle = () => {
-                if (!breathingActive) return;
-                
-                switch(phase) {
-                    case 0: text.textContent = 'INHALE'; break;
-                    case 1: text.textContent = 'HOLD'; break;
-                    case 2: text.textContent = 'EXHALE'; break;
-                    case 3: text.textContent = 'HOLD'; break;
-                }
-                
-                phase = (phase + 1) % 4;
-            };
-            
-            cycle();
-            setInterval(() => { if(breathingActive) cycle(); }, 4000);
-        }
-        
-        function startBreathingTimer() {
-            breathingTime = 0;
-            breathingInterval = setInterval(() => {
-                if (!breathingActive) return;
-                breathingTime++;
-                const mins = Math.floor(breathingTime / 60).toString().padStart(2, '0');
-                const secs = (breathingTime % 60).toString().padStart(2, '0');
-                document.getElementById('breathingTimer').textContent = `${mins}:${secs}`;
-            }, 1000);
-        }
-        
-        function setBreathingMode(mode) {
-            document.querySelectorAll('.breathing-mode').forEach(btn => {
-                btn.classList.remove('bg-cyan-500/20', 'border-cyan-500/50', 'text-cyan-400');
-                btn.classList.add('bg-gray-700/50', 'border-gray-600', 'text-gray-400');
-            });
-            
-            event.target.classList.remove('bg-gray-700/50', 'border-gray-600', 'text-gray-400');
-            event.target.classList.add('bg-cyan-500/20', 'border-cyan-500/50', 'text-cyan-400');
-            
-            // Adjust timing based on mode (visual feedback only)
-            const btn = document.getElementById('breathingBtn');
-            if (mode === 'sleep') btn.style.animationDuration = '6s';
-            else if (mode === 'energy') btn.style.animationDuration = '3s';
-            else btn.style.animationDuration = '4s';
-        }
-        
-        // AI Doctor Chat
-        function quickAsk(question) {
-            document.getElementById('chatInput').value = question;
+
+        // AI Doctor
+        function quickAsk(q) {
+            document.getElementById('chatInput').value = q;
             sendMessage();
         }
-        
+
         function sendMessage() {
             const input = document.getElementById('chatInput');
-            const message = input.value.trim();
-            if (!message) return;
+            const text = input.value.trim();
+            if (!text) return;
             
-            addMessage(message, 'user');
+            addChatMessage(text, 'user');
             input.value = '';
             
-            showTyping();
-            
             setTimeout(() => {
-                removeTyping();
-                const response = generateAIResponse(message);
-                addMessage(response, 'ai');
-            }, 1500 + Math.random() * 1000);
+                const response = generateResponse(text);
+                addChatMessage(response, 'ai');
+            }, 1000);
         }
-        
-        function addMessage(text, sender) {
+
+        function addChatMessage(text, sender) {
             const container = document.getElementById('chatContainer');
             const div = document.createElement('div');
             div.className = `chat-message chat-${sender}`;
-            
-            const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            
             if (sender === 'ai') {
-                div.innerHTML = `
-                    <div class="flex items-center gap-2 mb-1">
-                        <i class="fas fa-robot text-purple-400"></i>
-                        <span class="font-bold text-sm">Dr. NutriSync</span>
-                        <span class="text-xs text-gray-500 ml-auto">${time}</span>
-                    </div>
-                    <div class="text-sm leading-relaxed">${text}</div>
-                `;
+                div.innerHTML = `<div class="flex items-center gap-2 mb-1"><i class="fas fa-robot text-purple-400"></i><span class="font-bold text-sm">Dr. NutriSync</span></div>${text}`;
             } else {
-                div.innerHTML = `
-                    <div class="flex items-center gap-2 mb-1 justify-end">
-                        <span class="text-xs text-gray-300 mr-auto">${time}</span>
-                        <span class="font-bold text-sm">You</span>
-                    </div>
-                    <div class="text-sm">${text}</div>
-                `;
+                div.textContent = text;
             }
-            
             container.appendChild(div);
             container.scrollTop = container.scrollHeight;
         }
-        
-        function showTyping() {
-            const container = document.getElementById('chatContainer');
-            const div = document.createElement('div');
-            div.id = 'typingIndicator';
-            div.className = 'chat-message chat-ai';
-            div.innerHTML = `
-                <div class="flex items-center gap-2">
-                    <i class="fas fa-robot text-purple-400"></i>
-                    <div class="typing-indicator">
-                        <span></span><span></span><span></span>
-                    </div>
-                </div>
+
+        function generateResponse(input) {
+            if (input.includes('weight')) return "Based on your profile, I recommend a 500-calorie deficit with high protein intake. Your current trajectory shows excellent progress.";
+            if (input.includes('sleep')) return "Your sleep architecture suggests increasing deep sleep by 15%. Try magnesium glycinate 400mg before bed.";
+            return "I've analyzed your health data. Your metrics are improving. Continue with your current protocol and consider increasing NEAT activity by 10%.";
+        }
+
+        // Feature Implementations
+        function generateDNAPDF() {
+            alert('Generating comprehensive DNA analysis PDF...\n\nIncluding:\n• Genetic risk factors\n• Nutritional recommendations\n• Supplement protocols\n• Lifestyle modifications');
+        }
+
+        let vrActive = false;
+        function startVR(env) {
+            vrActive = true;
+            document.getElementById('vrSession').innerHTML = `
+                <div class="text-2xl font-bold mb-2 gradient-text">${env.charAt(0).toUpperCase() + env.slice(1)} Environment</div>
+                <div class="text-green-400"><i class="fas fa-circle text-xs animate-pulse mr-2"></i>Connected to VR Headset</div>
+                <div class="mt-4 text-sm text-gray-400">Session: 00:00</div>
             `;
-            container.appendChild(div);
-            container.scrollTop = container.scrollHeight;
+            document.getElementById('vrControls').classList.remove('hidden');
         }
-        
-        function removeTyping() {
-            const typing = document.getElementById('typingIndicator');
-            if (typing) typing.remove();
+
+        function pauseVR() { alert('VR Session Paused'); }
+        function stopVR() { 
+            vrActive = false; 
+            document.getElementById('vrSession').textContent = 'Select environment to begin';
+            document.getElementById('vrControls').classList.add('hidden');
         }
-        
-        function generateAIResponse(input) {
-            input = input.toLowerCase();
-            
-            // Build context from profile
-            let context = '';
-            if (profile.weight && profile.goalWeight) {
-                const diff = (profile.weight - profile.goalWeight).toFixed(1);
-                if (diff > 0) context = `Based on your current weight of ${profile.weight}kg and goal of ${profile.goalWeight}kg (${diff}kg reduction needed), `;
-                else if (diff < 0) context = `Based on your goal to gain ${Math.abs(diff)}kg of lean mass, `;
-                else context = `At your target weight of ${profile.weight}kg, `;
-            }
-            
-            if (input.includes('weight loss') || input.includes('diet') || input.includes('eat')) {
-                let bmiContext = '';
-                if (profile.height && profile.weight) {
-                    const bmi = (profile.weight / ((profile.height/100) ** 2)).toFixed(1);
-                    if (bmi > 25) bmiContext = `Your BMI of ${bmi} suggests focusing on nutrient density while maintaining a moderate caloric deficit. `;
-                }
-                return context + bmiContext + "I recommend a Mediterranean-style approach: 40% complex carbohydrates, 30% lean proteins (fish, legumes, poultry), and 30% healthy fats (olive oil, avocados, nuts). Aim for 500kcal deficit daily for 0.5kg weekly loss. Priority nutrients: Omega-3s, fiber (30g+), and polyphenols.";
-            }
-            else if (input.includes('sleep')) {
-                return context + "Your sleep architecture can be optimized through several evidence-based interventions: 1) Maintain core body temperature drop via 65°F bedroom environment, 2) Complete darkness via blackout curtains (melanopic lux <1), 3) Magnesium threonate 400mg + L-theanine 200mg 1 hour pre-sleep, 4) Consistent chronotherapy with fixed wake times.";
-            }
-            else if (input.includes('workout') || input.includes('exercise') || input.includes('training')) {
-                return context + "Periodization is key. I recommend a 4-day split: Day 1 & 3 (Upper Body Push/Pull), Day 2 & 4 (Lower Body/HIIT). Volume: 3-4 sets of 8-12 RM. Progressive overload: 2.5% weekly increase. With your metrics, target 150 minutes moderate or 75 minutes vigorous activity weekly, plus 2 resistance sessions.";
-            }
-            else if (input.includes('hrv') || input.includes('heart') || input.includes('stress')) {
-                return "Heart Rate Variability indicates autonomic nervous system resilience. To improve RMSSD scores: Practice the resonant breathing protocol (5.5 breaths/minute) shown in your Neuro-Breathing module. Cold exposure (2-3 minutes at 15°C) stimulates vagal tone. Limit alcohol and high-glycemic meals which suppress HRV for 24-48 hours.";
-            }
-            else if (input.includes('bmi') || input.includes('body mass')) {
-                if (profile.height && profile.weight) {
-                    const bmi = (profile.weight / ((profile.height/100) ** 2)).toFixed(1);
-                    let interpretation = '';
-                    if (bmi < 18.5) interpretation = 'Underweight - focus on nutrient-dense caloric surplus and resistance training.';
-                    else if (bmi < 25) interpretation = 'Normal range - maintain current trajectory with body composition focus rather than scale weight.';
-                    else if (bmi < 30) interpretation = 'Overweight - prioritize insulin sensitivity through low-glycemic nutrition and NEAT increase.';
-                    else interpretation = 'Obese category - consider medical supervision for 10% weight reduction initial goal.';
-                    return `Your calculated BMI is ${bmi}. ${interpretation} Note: BMI doesn't account for muscle mass or fat distribution - waist-to-height ratio may be more predictive for metabolic health.`;
-                }
-                return "I need your height and weight data to calculate BMI. Please update your profile for personalized analysis.";
-            }
-            else {
-                return context + "I've analyzed your complete health dataset. My recommendations prioritize metabolic health markers over scale weight. Consider tracking waist circumference, fasting glucose, and sleep efficiency as primary metrics. Would you like specific protocols for cognitive performance, hormonal optimization, or longevity?";
-            }
-        }
-        
-        // Workouts
-        function openWorkout(type) {
-            showPage('workout');
-            const content = document.getElementById('workoutContent');
-            const title = document.getElementById('workoutTitle');
-            const icon = document.getElementById('workoutIcon');
-            
-            const workouts = {
-                yoga: {
-                    title: 'Yoga Flow',
-                    icon: 'fa-spa',
-                    color: 'from-cyan-400 to-blue-600',
-                    description: 'Vinyasa flow emphasizing parasympathetic activation',
-                    exercises: [
-                        { name: 'Sun Salutation A', duration: '5 mins', detail: '5 rounds, breath-synchronized movement' },
-                        { name: 'Warrior Sequence', duration: '10 mins', detail: 'Warrior I, II, III transitions' },
-                        { name: 'Tree Pose Hold', duration: '2 mins/side', detail: 'Proprioceptive balance training' },
-                        { name: 'Supine Twist', duration: '3 mins', detail: 'Spinal decompression' }
-                    ]
-                },
-                hiit: {
-                    title: 'Metabolic HIIT',
-                    icon: 'fa-fire',
-                    color: 'from-orange-400 to-red-600',
-                    description: 'EPOC-inducing high intensity intervals',
-                    exercises: [
-                        { name: 'Burpees', duration: '45 sec', detail: 'Max intensity, full extension' },
-                        { name: 'Kettlebell Swings', duration: '45 sec', detail: 'Hip hinge power' },
-                        { name: 'Mountain Climbers', duration: '45 sec', detail: 'Core stabilization' },
-                        { name: 'Active Recovery', duration: '15 sec', detail: 'Complete 4 rounds' }
-                    ]
-                },
-                strength: {
-                    title: 'Hypertrophy Protocol',
-                    icon: 'fa-dumbbell',
-                    color: 'from-blue-400 to-indigo-600',
-                    description: 'Progressive overload resistance training',
-                    exercises: [
-                        { name: 'Compound Squat', duration: '4x8', detail: '80% 1RM, 3min rest' },
-                        { name: 'Bench Press', duration: '4x8', detail: 'Scapular retraction focus' },
-                        { name: 'Romanian Deadlift', duration: '3x12', detail: 'Hamstring eccentric loading' },
-                        { name: 'Weighted Pull-ups', duration: '3x6', detail: 'Full range of motion' }
-                    ]
-                },
-                taichi: {
-                    title: 'Tai Chi Flow',
-                    icon: 'fa-yin-yang',
-                    color: 'from-purple-400 to-pink-600',
-                    description: 'Mind-body martial art for balance',
-                    exercises: [
-                        { name: 'Commencing Form', duration: '5 mins', detail: 'Qi gathering' },
-                        { name: 'Parting Wild Horse Mane', duration: '10 mins', detail: 'Weight shift sequence' },
-                        { name: 'Wave Hands Like Clouds', duration: '10 mins', detail: 'Continuous flow' },
-                        { name: 'Closing Form', duration: '5 mins', detail: 'Energy consolidation' }
-                    ]
-                },
-                pilates: {
-                    title: 'Core Control',
-                    icon: 'fa-female',
-                    color: 'from-pink-400 to-rose-600',
-                    description: 'Deep core stabilization',
-                    exercises: [
-                        { name: 'The Hundred', duration: '100 pumps', detail: 'Breath coordination' },
-                        { name: 'Teaser', duration: '5 reps', detail: 'Roll up to V-sit' },
-                        { name: 'Criss-Cross', duration: '10 each', detail: 'Oblique rotation' },
-                        { name: 'Swan Dive', duration: '5 reps', detail: 'Spinal extension' }
-                    ]
-                },
-                boxing: {
-                    title: 'Combat Cardio',
-                    icon: 'fa-fist-raised',
-                    color: 'from-red-400 to-rose-600',
-                    description: 'Striking-based metabolic conditioning',
-                    exercises: [
-                        { name: 'Jab-Cross Combos', duration: '3 mins', detail: 'Speed and precision' },
-                        { name: 'Hook-Uppercut Drills', duration: '3 mins', detail: 'Power generation' },
-                        { name: 'Defense Movements', duration: '3 mins', detail: 'Slip and weave' },
-                        { name: 'Heavy Bag Rounds', duration: '6 mins', detail: 'Power endurance' }
-                    ]
-                }
-            };
-            
-            const w = workouts[type];
-            title.textContent = w.title;
-            icon.className = `w-24 h-24 mx-auto rounded-3xl bg-gradient-to-br ${w.color} flex items-center justify-center text-4xl mb-4 shadow-lg`;
-            icon.innerHTML = `<i class="fas ${w.icon} text-white"></i>`;
-            
-            content.innerHTML = `
-                <div class="glass rounded-2xl p-4 mb-4 text-center">
-                    <p class="text-gray-400 text-sm">${w.description}</p>
-                </div>
-                ${w.exercises.map((ex, i) => `
-                    <div class="glass rounded-xl p-4 flex items-center gap-4 feature-card cursor-pointer hover:bg-gray-800/50 transition border border-transparent hover:border-cyan-500/30" onclick="toggleExerciseComplete(this)">
-                        <div class="w-12 h-12 rounded-full bg-gray-800 flex items-center justify-center font-bold text-cyan-400 border border-gray-700 check-circle">
-                            ${i + 1}
-                        </div>
-                        <div class="flex-1">
-                            <div class="font-bold text-lg">${ex.name}</div>
-                            <div class="text-sm text-cyan-400">${ex.duration}</div>
-                            <div class="text-xs text-gray-500 mt-1">${ex.detail}</div>
-                        </div>
-                        <div class="w-8 h-8 rounded-full border-2 border-gray-600 flex items-center justify-center check-mark">
-                            <i class="fas fa-check text-transparent transition-colors"></i>
-                        </div>
+        function intensityVR() { alert('Adjusting intensity level...'); }
+
+        function addFamilyMember() {
+            const name = prompt('Enter family member name:');
+            if (name) {
+                const list = document.getElementById('familyList');
+                const div = document.createElement('div');
+                div.className = 'flex items-center gap-3 p-3 bg-gray-800/50 rounded-lg';
+                div.innerHTML = `
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-blue-600 flex items-center justify-center">
+                        <i class="fas fa-user text-white"></i>
                     </div>
-                `).join('')}
-                
-                <div class="mt-6 p-4 bg-gradient-to-r from-orange-500/10 to-red-500/10 rounded-2xl border border-orange-500/20">
-                    <div class="flex items-center gap-3 mb-2">
-                        <i class="fas fa-robot text-orange-400"></i>
-                        <span class="font-bold text-sm">AI Form Analysis</span>
+                    <div class="flex-1">
+                        <div class="font-semibold">${name}</div>
+                        <div class="text-xs text-gray-400">Member • Pending invite</div>
                     </div>
-                    <p class="text-xs text-gray-400 mb-3">Enable camera for real-time biomechanical feedback</p>
-                    <button class="w-full py-2 rounded-lg bg-gray-800 text-sm hover:bg-gray-700 transition border border-gray-600">
-                        <i class="fas fa-video mr-2"></i>Start AI Coaching
-                    </button>
+                `;
+                list.appendChild(div);
+            }
+        }
+
+        function startCoaching(exercise) {
+            alert(`Starting AI coaching for ${exercise}...\n\n• Camera analyzing form\n• Real-time feedback active\n• Voice guidance enabled`);
+        }
+
+        function downloadReport(type) {
+            alert(`Generating ${type} report PDF...\n\nReport includes:\n• 90-day trend analysis\n• Medical-grade charts\n• Physician-ready formatting`);
+        }
+
+        function generateNewReport() {
+            alert('Select report type:\n\n1. Comprehensive Metabolic Panel\n2. Hormone Profile\n3. Cardiovascular Risk\n4. Nutritional Deficiency');
+        }
+
+        function startBreathingProtocol() {
+            alert('Starting resonant breathing protocol...\n\nInhale: 5.5 seconds\nExhale: 5.5 seconds\n\nTarget: 10 minutes to increase HRV');
+        }
+
+        // Gut bacteria animation
+        function initBacteria() {
+            const container = document.getElementById('bacteriaContainer');
+            if (!container) return;
+            container.innerHTML = '';
+            for (let i = 0; i < 15; i++) {
+                const b = document.createElement('div');
+                b.className = 'gut-bacteria';
+                b.style.left = Math.random() * 100 + '%';
+                b.style.top = Math.random() * 100 + '%';
+                b.style.animationDelay = Math.random() * 3 + 's';
+                b.style.background = ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b'][Math.floor(Math.random() * 4)];
+                container.appendChild(b);
+            }
+        }
+
+        function startNeuroProtocol(type) {
+            const states = { 'focus': '40Hz Gamma - Focus Mode', 'relax': '10Hz Alpha - Relaxation', 'sleep': '4Hz Delta - Deep Sleep', 'creativity': '7.83Hz Schumann - Flow State' };
+            document.getElementById('brainState').textContent = states[type] || 'Optimized';
+            alert(`Starting ${type} neurofeedback protocol...\n\n• EEG sensors calibrating\n• Audio-visual entrainment beginning\n• Session: 20 minutes`);
+        }
+
+        // All Features List
+        const allFeaturesList = [
+            'DNA-Based Nutrition', 'VR Immersive Training', 'Family Health Network', 'AI Form Correction',
+            'Clinical PDF Reports', 'HRV Stress Monitor', 'Gut Microbiome Analysis', 'Neurofeedback Training',
+            'Blood Glucose Prediction', 'Sleep Architecture Analysis', 'Periodization Planning', 'Metabolic Testing',
+            'Body Composition Scan', 'Food Sensitivity Testing', 'Supplement Stack Optimizer', 'Longevity Biomarkers',
+            'Hormone Panel Tracking', 'Heart Rate Zones', 'VO2 Max Estimation', 'Recovery Score',
+            'Mindfulness Metrics', 'Posture Analysis', 'Gait Assessment', 'Fall Risk Prediction',
+            'Cognitive Testing', 'Memory Games', 'Reaction Time', 'Processing Speed',
+            'Meditation Guidance', 'Breathwork Protocols', 'Cold Exposure Timer', 'Heat Therapy Log',
+            'Fasting Tracker', 'Ketone Monitoring', 'Glucose Monitoring', 'Insulin Sensitivity',
+            'Thyroid Function', 'Adrenal Health', 'Cortisol Patterns', 'DHEA Levels',
+            'Testosterone Tracking', 'Estrogen Metabolism', 'Progesterone Cycle', 'LH/FSH Ratio',
+            'Inflammation Markers', 'Omega-3 Index', 'Vitamin D Status', 'B12 Monitoring',
+            'Iron Panel', 'Ferritin Tracking', 'Zinc Status', 'Magnesium RBC',
+            'Telomere Length', 'DNA Methylation', 'Cellular Senescence', 'Autophagy Indicators',
+            'Protein Intake Optimization', 'Amino Acid Profile', 'Leucine Threshold', 'MTOR Signaling',
+            'AMPK Activation', 'Sirtuin Pathways', 'NAD+ Levels', 'Mitochondrial Function',
+            'ATP Production', 'Oxidative Stress', 'Antioxidant Status', 'Glutathione Levels',
+            'Detoxification Pathways', 'Liver Function', 'Kidney Function', 'GFR Estimation',
+            'Electrolyte Balance', 'Hydration Status', 'Sodium/Potassium Ratio', 'Magnesium Status',
+            'Calcium Metabolism', 'Bone Density Estimation', 'Joint Health', 'Cartilage Support',
+            'Collagen Synthesis', 'Skin Elasticity', 'Wrinkle Depth Analysis', 'UV Damage Assessment',
+            'Photoaging Protection', 'Antioxidant Topicals', 'Peptide Therapy', 'Stem Cell Support',
+            'Exosome Tracking', 'PRP Monitoring', 'Ozone Therapy Log', 'HBOT Sessions',
+            'Red Light Therapy', 'Infrared Sauna', 'Cryotherapy', 'PEMF Therapy',
+            'TENS/EMS Training', 'Blood Flow Restriction', 'Occlusion Training', 'Hypoxic Training',
+            'Altitude Simulation', 'Underwater Training', 'Aquatic Therapy', 'Hydrotherapy',
+            'Contrast Baths', 'Foam Rolling', 'Myofascial Release', 'Trigger Point Therapy',
+            'Acupressure', 'Reflexology', 'Craniosacral', 'Lymphatic Drainage',
+            'Dry Brushing', 'Cupping Therapy', 'Gua Sha', 'CBD Integration',
+            'Nootropic Stacks', 'Adaptogen Protocols', 'Mushroom Extracts', 'Herbal Supplements',
+            'Traditional Chinese Medicine', 'Ayurvedic Constitution', 'Dosha Balancing', 'Chakra Alignment',
+            'Reiki Energy', 'Qi Gong', 'Tai Chi Advanced', 'Baguazhang',
+            'Systema', 'Wim Hof Method', 'Buteyko Breathing', 'Pranayama',
+            'Holotropic Breathwork', 'Rebirthing', 'Bioenergetics', 'Somatic Experiencing',
+            'EMDR Self-Help', 'Tapping/EFT', 'NLP Techniques', 'Cognitive Behavioral Tools',
+            'Dialectical Behavior', 'Acceptance Commitment', 'Positive Psychology', 'Flow State Triggers',
+            'Creativity Boosters', 'Learning Acceleration', 'Language Learning', 'Muscle Memory',
+            'Motor Control', 'Proprioception', 'Balance Training', 'Coordination Drills',
+            'Reaction Training', 'Agility Ladder', 'Plyometrics', 'Isometrics',
+            'Eccentric Training', 'Concentric Focus', 'Isokinetic', 'Variable Resistance',
+            'Band Work', 'Chain Training', 'Suspension', 'Calisthenics',
+            'Street Workout', 'Parkour', 'Gymnastics', 'Dance Therapy',
+            'Music Therapy', 'Sound Healing', 'Binaural Beats', 'Isochronic Tones',
+            'Solfeggio Frequencies', 'Chakra Tuning', 'Planetary Gongs', 'Crystal Singing',
+            'Drum Circles', 'Rhythm Therapy', 'Voice Analysis', 'Toning Exercises',
+            'Mantra Meditation', 'Kundalini Yoga', 'Ashtanga Primary', 'Vinyasa Flow',
+            'Yin Yoga', 'Restorative', 'Nidra Yoga', 'Kriya Yoga',
+            'Bhakti Practices', 'Jnana Meditation', 'Karma Yoga', 'Raja Yoga',
+            'Tantra Practices', 'Sexual Health', 'Fertility Tracking', 'Prenatal Care',
+            'Postnatal Recovery', 'Pediatric Nutrition', 'Geriatric Support', 'Menopause Management',
+            'Andropause Support', 'Cycle Syncing', 'Seed Cycling', 'Moon Phase Training'
+        ];
+
+        function populateAllFeatures() {
+            const container = document.getElementById('featuresList');
+            if (!container) return;
+            container.innerHTML = allFeaturesList.map(f => `
+                <div class="glass rounded-lg p-3 flex items-center justify-between cursor-pointer hover:bg-gray-800/50 transition" onclick="alert('${f} - Full implementation loading...')">
+                    <div class="flex items-center gap-3">
+                        <i class="fas fa-star text-yellow-400"></i>
+                        <span class="font-medium">${f}</span>
+                    </div>
+                    <i class="fas fa-chevron-right text-gray-500 text-sm"></i>
                 </div>
-            `;
+            `).join('');
         }
-        
-        function toggleExerciseComplete(el) {
-            el.classList.toggle('border-cyan-500');
-            el.classList.toggle('bg-cyan-500/5');
-            const check = el.querySelector('.check-mark');
-            const icon = check.querySelector('i');
-            const circle = el.querySelector('.check-circle');
-            
-            if (el.classList.contains('border-cyan-500')) {
-                check.classList.add('bg-cyan-500', 'border-cyan-500');
-                check.classList.remove('border-gray-600');
-                icon.classList.remove('text-transparent');
-                icon.classList.add('text-white');
-                circle.classList.add('bg-cyan-500/20', 'border-cyan-500/50');
-            } else {
-                check.classList.remove('bg-cyan-500', 'border-cyan-500');
-                check.classList.add('border-gray-600');
-                icon.classList.add('text-transparent');
-                icon.classList.remove('text-white');
-                circle.classList.remove('bg-cyan-500/20', 'border-cyan-500/50');
-            }
+
+        function searchFeatures(query) {
+            const container = document.getElementById('featuresList');
+            const filtered = allFeaturesList.filter(f => f.toLowerCase().includes(query.toLowerCase()));
+            container.innerHTML = filtered.map(f => `
+                <div class="glass rounded-lg p-3 flex items-center justify-between cursor-pointer hover:bg-gray-800/50 transition" onclick="alert('${f} - Full implementation loading...')">
+                    <div class="flex items-center gap-3">
+                        <i class="fas fa-star text-yellow-400"></i>
+                        <span class="font-medium">${f}</span>
+                    </div>
+                    <i class="fas fa-chevron-right text-gray-500 text-sm"></i>
+                </div>
+            `).join('');
         }
-        
-        function openProFeature(feature) {
-            if (!isPro) {
-                promptProAccess();
-                return;
-            }
-            
-            // Show feature details
-            const descriptions = {
-                'DNA Analysis': 'Genetic markers analyzed: APOE, MTHFR, FTO. Personalized nutrition protocols based on your methylation and metabolism genetics.',
-                'VR Training': 'Immersive environments for pain distraction during HIIT and gamified endurance training.',
-                'Family Network': 'HIPAA-compliant sharing with up to 5 family members with permission-based data visibility.',
-                'AI Coach': 'Computer vision analysis of form with corrective feedback via bone-tracking algorithms.',
-                'Clinical Reports': 'PDF generation suitable for physician review with 90-day trend analysis.',
-                'HRV Monitor': 'Continuous heart rate variability tracking with autonomic balance scoring.',
-                'Gut Biome': '16S rRNA sequencing integration with dietary recommendations for microbiome diversity.',
-                'Neurofeedback': 'EEG-based focus training with gamma wave entrainment protocols.'
-            };
-            
-            alert(`${feature}\n\n${descriptions[feature] || 'Premium feature now active.'}\n\nFull functionality unlocked.`);
-        }
-        
+
         function showAllFeatures() {
-            if (!isPro) {
-                promptProAccess();
-                return;
-            }
-            alert('Pro Suite Features:\n\n• DNA-Based Nutrition\n• VR Immersive Training\n• Family Health Network\n• AI Form Correction\n• Clinical PDF Reports\n• HRV Stress Monitor\n• Gut Microbiome Analysis\n• Neurofeedback Training\n• Blood Glucose Prediction\n• Sleep Architecture Analysis\n• Periodization Planning\n• Metabolic Testing\n• Body Composition Scan\n• Food Sensitivity Testing\n• Supplement Stack Optimizer\n• Longevity Biomarkers\n• And 158+ more...');
+            if (!isPro) { showProStatus(); return; }
+            pageHistory.push('home');
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById('allFeaturesPage').classList.add('active');
+            document.getElementById('backBtn').classList.remove('hidden');
+            updateHeader('All Features', '174+ Premium Tools');
         }
+
+        // Initialize gut bacteria when page shown
+        setInterval(() => {
+            if (document.getElementById('gutPage')?.classList.contains('active')) {
+                initBacteria();
+            }
+        }, 5000);
     </script>
 </body>
 </html>
